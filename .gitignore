@@ -1,0 +1,7 @@
+tools/
+artifacts/
+.superpowers/
+game/.godot/
+game/export_presets.cfg
+node_modules/
+*.tmp
