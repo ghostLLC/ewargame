@@ -51,3 +51,12 @@ Preflight interfaces: Core -> Content uses exact scenario schema; Core -> Sessio
 
 ### Evidence
 core 56 · AI 7/7 · session 13 · MCP 3/3 · LAN · LAN reconnect · CONTENT PASS · export exe
+
+## 2026-09-16 — optional polish (main `E:\EWarGame`)
+
+- App icon `ewargame_icon.png` / `ewargame.ico` wired into project + export (v0.1.2)
+- UI/ambient SFX autoload `game/audio.gd` + generated wavs; click/confirm/alert/turn/ambient
+- CI workflow `.github/workflows/ci.yml` (content + MCP)
+- Packaging/signing notes `docs/development/packaging.md`
+- Removed multi-GB template downloads; removed merged worktree `ewargame-content`; deleted branch `codex/content-fix`
+- Code signing: not performed (no cert on machine); instructions only

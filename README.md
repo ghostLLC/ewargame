@@ -61,7 +61,15 @@ MCP 接入见 `bridge/SKILL.md`。命令示例：`node` + 绝对路径 `bridge/s
 powershell -File scripts\package.ps1
 ```
 
-需要已配置 Godot 4.7.2 导出模板（本机已装到 `%APPDATA%\Godot\export_templates\4.7.2.stable\`）。导出 Windows 桌面构建到 `artifacts/win/ewargame.exe`。
+需要已配置 Godot 4.7.2 导出模板（本机已装到 `%APPDATA%\Godot\export_templates\4.7.2.stable\`）。导出 Windows 桌面构建到 `artifacts/win/ewargame.exe`。应用图标：`game/assets/icons/ewargame_icon.png`。签名与清理说明见 `docs/development/packaging.md`。
+
+## 音效
+
+`game/audio.gd` 自动加载，播放 `game/assets/audio/*.wav`（点击/确认/警告/回合结算/环境垫）。可用脚本 `scripts/make_assets.py` 重新生成。
+
+## CI
+
+`.github/workflows/ci.yml` 在 Windows runner 上跑剧本校验与 MCP 测试。完整 Godot 验收请在本机执行 `scripts/run_acceptance.ps1`。
 
 ## 集成烟测
 

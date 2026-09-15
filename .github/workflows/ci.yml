@@ -1,0 +1,27 @@
+# CI: content + MCP. Godot binary not assumed on runners.
+name: ewargame-ci
+
+on:
+  push:
+    branches: [codex/first-playable, main, master]
+  pull_request:
+
+jobs:
+  content-and-mcp:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Scenario content validate
+        run: python scripts/validate_content.py validate
+      - name: MCP bridge tests
+        working-directory: bridge
+        run: node --test test.mjs
+
+  # Optional local Godot lane is documented in README (scripts/run_acceptance.ps1).
+  # Full core/AI/LAN smokes require Godot 4.7.2 + export templates on the machine.

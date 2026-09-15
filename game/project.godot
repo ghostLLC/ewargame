@@ -2,15 +2,20 @@
 config_version=5
 
 [application]
+
 config/name="战线 · 战役指挥"
 run/main_scene="res://main.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
-config/version="0.1.1"
+config/version="0.1.2"
+config/icon="res://assets/icons/ewargame_icon.png"
 
 [autoload]
+
 GameSession="*res://session.gd"
+GameAudio="*res://audio.gd"
 
 [display]
+
 window/size/viewport_width=1440
 window/size/viewport_height=900
 window/size/window_width_override=1440
@@ -20,11 +25,13 @@ window/size/min_height=720
 window/stretch/mode="canvas_items"
 
 [rendering]
+
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 textures/default_filters/use_nearest_mipmap_filter=false
 environment/defaults/default_clear_color=Color(0.055, 0.09, 0.10, 1)
 
 [debug]
+
 gdscript/warnings/untyped_declaration=0
 

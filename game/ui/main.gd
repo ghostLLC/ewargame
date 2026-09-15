@@ -102,7 +102,11 @@ func _button(text: String, action: Callable, tip: String = "") -> Button:
 	b.custom_minimum_size.y = 34
 	b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	b.tooltip_text = tip
-	b.pressed.connect(action)
+	b.pressed.connect(func():
+		if Engine.has_singleton("GameAudio") or true:
+			if has_node("/root/GameAudio"):
+				get_node("/root/GameAudio").play("click")
+		action.call())
 	return b
 
 func _panel(parent: Node, color: Color = PANEL, padding: int = 20) -> VBoxContainer:
@@ -153,6 +157,10 @@ func _refresh() -> void:
 			saved_zoom = 1.0
 		was_game = true
 		_build_game()
+		var turn_now = int(GameSession.view.get("turn", -1))
+		if last_turn >= 0 and turn_now > last_turn and has_node("/root/GameAudio"):
+			get_node("/root/GameAudio").play("turn")
+		last_turn = turn_now
 	status = _label(notice_text,12,MUTED)
 	status.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	shell.add_child(status)
@@ -518,11 +526,16 @@ func _order_tooltip(kind: String) -> String:
 
 func _commit() -> void:
 	pending_order = ""
+	if has_node("/root/GameAudio"):
+		get_node("/root/GameAudio").play("confirm")
 	GameSession.commit_turn()
 
 func _notice(message: String) -> void:
 	notice_text = message
 	if is_instance_valid(status): status.text = message
+	if has_node("/root/GameAudio"):
+		var bad = message.contains("无效") or message.contains("失败") or message.contains("不能") or message.contains("无法") or message.contains("已锁定") or message.contains("中断")
+		get_node("/root/GameAudio").play("alert" if bad else "click")
 
 func _dialog(title_text: String, body_text: String, min_size: Vector2i = Vector2i(700,500)) -> AcceptDialog:
 	var dialog = AcceptDialog.new()
