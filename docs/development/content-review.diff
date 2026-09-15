@@ -1,0 +1,181 @@
+diff --git a/docs/history.md b/docs/history.md
+new file mode 100644
+index 0000000..d40de34
+--- /dev/null
++++ b/docs/history.md
+@@ -0,0 +1,31 @@
++# 历史内容与设计边界
++
++《战线 · 战役指挥》的六个历史场景使用真实战役、地名与公开可核对的编制名称作为背景，但它们是作战级兵棋关卡，不是历史复原工具。六角格地图按战场的海岸、河流、高地、道路与荒漠等主要地理特征重新构成；单位初始位置、战斗数值、补给容量、时间尺度、增援和胜利分值均为玩法设计。游戏不声称地图、兵力或战果精确对应任何特定时刻。
++
++## 诺曼底，1944
++
++“诺曼底桥头堡”聚焦犹他海滩出口、科唐坦湿地和空降部队争取通道的作战问题；“诺曼底突破”聚焦圣洛地区博卡日防御与 COBRA 行动后的纵深机动。两关使用美军师、军属炮兵及德军师/军级编制的公开名称，并将其压缩为可操控的作战单位。
++
++- [U.S. Army CMH: Cross-Channel Attack](https://history.army.mil/Publications/Publications-Catalog/Cross-Channel-Attack/)：美国陆军官方战史，覆盖第一集团军至 1944 年 7 月 1 日的行动。
++- [U.S. Army CMH: Breakout and Pursuit](https://history.army.mil/portals/143/Images/Publications/catalog/7-5.pdf)：美国陆军官方战史，用于 COBRA 行动、圣洛和突破阶段的编制与战役背景。
++- [U.S. Army CMH: Utah Beach to Cherbourg](https://history.army.mil/Publications/Publications-Catalog/Utah-Beach-to-Cherbourg/)：美国陆军官方叙事，用于第 VII 军从滩头至瑟堡的战役脉络。
++
++## 西奈与戈兰，1973
++
++“西奈运河战线”表现渡河桥头堡、反坦克防御、装甲预备队与运河通路之间的取舍；“戈兰高地”表现高地道路、装甲突击和以军动员时间。场景采用公开资料中出现的以军、埃及军和叙利亚军编制名称；具体部署及相对能力属于平衡设计。
++
++- [IDF: What Was the 1973 Yom Kippur War?](https://www.idf.il/en/mini-sites/wars-and-operations/what-was-the-1973-yom-kippur-war/)：以色列国防军官方概述，说明两条主要战线、突袭、运河工事及当时装备背景。
++- [IDF: Lt. Gen. David Elazar](https://www.idf.il/en/mini-sites/past-chiefs-of-staff/lt-gen-david-elazar-1972-1974/)：以色列国防军官方人物史，涉及预备队调往戈兰及西奈反攻决策。
++- [U.S. Army CMH: On Operational Art](https://history.army.mil/Portals/143/Images/Publications/Publication%20By%20Title%20Images/O%20titles%20PDF/cmhPub_70-54.pdf)：美国陆军官方研究，用于戈兰战场后勤、空中遮断与作战节奏背景。
++
++## 海湾地面战，1991
++
++“沙漠左钩拳”聚焦第 VII 军与第 XVIII 空降军的西部纵深机动；“科威特地面战”聚焦筑垒带突破、海岸方向牵制和北向交通线。编制名称来自美国陆军官方战史所述多国部队与伊拉克军序列；双方数值经过压缩，不能用于推断真实兵力。
++
++- [U.S. Army CMH: Jayhawk! The VII Corps in the Persian Gulf War](https://history.army.mil/Publications/Publications-Catalog/Jayhawk/)：第 VII 军官方作战史目录与全文入口。
++- [U.S. Army CMH: War in the Persian Gulf](https://history.army.mil/Publications/Publications-Catalog/War-in-the-Persian-Gulf-ODS-and-DS/)：美国陆军官方海湾战争概述。
++- [U.S. Army CMH: Army History No. 118](https://history.army.mil/Portals/143/Images/Publications/ArmyHistoryMag/pdf/AH118.pdf)：官方历史文章，概述左钩拳、海岸方向和军级任务划分。
++
++## 美术与字体
++
++`game/assets/icons`、`illustrations` 与 `terrain` 中的 SVG 均为本项目原创几何图形，使用米白、深青、灰蓝和朱红色谱，不临摹外部插画或图标。中文字体为 Noto Sans SC，来源于 Google/Adobe Noto CJK 官方仓库，按 SIL Open Font License 1.1 随游戏分发；许可证全文与字体一同存放在 `game/assets/fonts`。
+diff --git a/scripts/validate_content.py b/scripts/validate_content.py
+new file mode 100644
+index 0000000..eabbc5b
+--- /dev/null
++++ b/scripts/validate_content.py
+@@ -0,0 +1,138 @@
++#!/usr/bin/env python3
++"""Generate and validate EWarGame scenario content (stdlib only)."""
++from __future__ import annotations
++import argparse, json, re
++from collections import deque
++from pathlib import Path
++
++ROOT = Path(__file__).resolve().parents[1]
++OUT = ROOT / "game" / "data" / "scenarios"
++TERRAINS = {"plains","forest","hills","mountain","desert","marsh","town","city","bocage","water"}
++TYPES = {"infantry","armor","mechanized","motorized","recon","artillery","engineer","airborne","hq","logistics","air_defense"}
++ERA = {
++ "ww2":{"recon_range":3,"air_support":0.8,"air_defense":0.45,"antitank":0.75,"command_range":5,"supply_factor":0.85},
++ "coldwar":{"recon_range":4,"air_support":1.0,"air_defense":0.9,"antitank":1.05,"command_range":6,"supply_factor":0.9},
++ "modern":{"recon_range":6,"air_support":1.35,"air_defense":1.1,"antitank":1.2,"command_range":8,"supply_factor":1.1},
++}
++SOURCES = {
++ "normandy":[
++  {"title":"U.S. Army CMH: Cross-Channel Attack","url":"https://history.army.mil/Publications/Publications-Catalog/Cross-Channel-Attack/","note":"Official U.S. Army campaign history for First Army operations through 1 July 1944."},
++  {"title":"U.S. Army CMH: Breakout and Pursuit","url":"https://history.army.mil/portals/143/Images/Publications/catalog/7-5.pdf","note":"Official history used for Operation COBRA and formation context."}],
++ "1973":[
++  {"title":"IDF: What Was the 1973 Yom Kippur War?","url":"https://www.idf.il/en/mini-sites/wars-and-operations/what-was-the-1973-yom-kippur-war/","note":"Official overview of the Sinai and Golan fronts, surprise attack, equipment and campaign chronology."},
++  {"title":"U.S. Army CMH: On Operational Art","url":"https://history.army.mil/Portals/143/Images/Publications/Publication%20By%20Title%20Images/O%20titles%20PDF/cmhPub_70-54.pdf","note":"Official study used for operational context on the Golan fighting and interdiction."}],
++ "gulf":[
++  {"title":"U.S. Army CMH: Jayhawk! The VII Corps in the Persian Gulf War","url":"https://history.army.mil/Publications/Publications-Catalog/Jayhawk/","note":"Official VII Corps operational history and formation context."},
++  {"title":"U.S. Army CMH: War in the Persian Gulf","url":"https://history.army.mil/Publications/Publications-Catalog/War-in-the-Persian-Gulf-ODS-and-DS/","note":"Official campaign overview for Desert Shield and Desert Storm."}],
++}
++
++def slug(s): return re.sub(r"[^a-z0-9]+","_",s.lower()).strip("_")
++def tiles(w,h,theme):
++ out=[]
++ for q in range(w):
++  for r in range(h):
++   edge = q in (0,w-1) or r in (0,h-1)
++   if theme=="normandy":
++    t="bocage" if (q*3+r*5)%7<3 else "plains"
++    if (q+r*2)%19==0:t="forest"
++    if q in (w//2,w//2+1) and r>2:t="marsh"
++   elif theme=="golan":
++    t="hills" if (q+r)%4 else "plains"
++    if q>w-6:t="mountain"
++   else:
++    t="desert" if (q+r)%11 else "hills"
++   road=(r==h//2 or q==w//3 or (q-r)==w//4)
++   river=(theme=="sinai" and q==3) or (theme=="normandy" and q in (w//2,w//2+1) and r>2)
++   if river:t="water"
++   town=(q,r) in {(w//3,h//2),(2*w//3,h//2),(w//2,h//3),(w//2,2*h//3)}
++   if town:t="town"
++   out.append({"q":q,"r":r,"terrain":t,"elevation":2 if t=="mountain" else 1 if t=="hills" else 0,
++    "road":road,"rail": theme=="normandy" and r==h//3,"river":river,"bridge":river and r in (h//3,h//2,2*h//3),
++    "label": ({(w//3,h//2):"西部枢纽",(2*w//3,h//2):"东部枢纽",(w//2,h//3):"北部高地",(w//2,2*h//3):"南部通道"}.get((q,r),""))})
++ return out
++
++def units(names,side,w,h,era,offset=0):
++ out=[]
++ occupied=set()
++ for i,name in enumerate(names):
++  q=2+i%5 if side==0 else w-3-i%5
++  r=2+(i//5)*3+(i%2)
++  while (q,r) in occupied:r+=1
++  occupied.add((q,r))
++  low=name.lower()
++  typ="hq" if "division" in low or "corps" in low or "command" in low or "army" in low else "artillery" if "artillery" in low else "engineer" if "engineer" in low else "air_defense" if any(x in low for x in ("air defense","anti-aircraft")) else "recon" if any(x in low for x in ("recon","cavalry")) else "airborne" if any(x in low for x in ("airborne","parachute")) else "armor" if any(x in low for x in ("armor","armoured","tank","panzer")) else "mechanized" if "mechanized" in low else "motorized" if "motor" in low else "infantry"
++  size="division" if "division" in low else "regiment" if any(x in low for x in ("regiment","regimental")) else "brigade"
++  strength=72+(i*7+offset)%25
++  out.append({"id":f"s{side}_{i+1:02d}_{slug(name)[:36]}","name":name,"side":side,"q":q,"r":min(r,h-2),"type":typ,"size":size,"formation":name,"strength":strength,"organization":78+(i*3)%19,"fatigue":(i*2)%14,"fuel":90 if typ in ("armor","mechanized","motorized","recon") else 75,"ammo":82+(i*5)%19,"quality":0.82+((i+side)%5)*0.04})
++ return out
++
++def scenario(id,title,subtitle,era,date,w,h,theme,n0,n1,seed,desc):
++ ts=tiles(w,h,theme)
++ objs=[]
++ for q,r,name,val in [(w//2,h//3,"北部要点",12),(w//2,h//2,"中央交通枢纽",18),(w//2,2*h//3,"南部通道",12)]:
++  objs.append({"q":q,"r":r,"name":name,"value":val,"owner":-1})
++ return {"id":id,"title":title,"subtitle":subtitle,"era":era,"date":date,"description":desc,"width":w,"height":h,"hex_km":2 if era=="ww2" else 4 if era=="coldwar" else 8,"turn_hours":6 if era=="ww2" else 4,"max_turns":12,"seed":seed,
++  "sides":[{"name":"盟军" if era=="ww2" else "以色列" if era=="coldwar" else "多国部队","color":"#587B8D"},{"name":"德军" if era=="ww2" else "埃及军" if theme=="sinai" else "叙利亚军" if theme=="golan" else "伊拉克军","color":"#C5523A"}],
++  "tiles":ts,"units":units(n0,0,w,h,era,seed)+units(n1,1,w,h,era,seed+1),"objectives":objs,
++  "depots":[{"q":1,"r":h//2,"side":0,"capacity":120},{"q":w-2,"r":h//2,"side":1,"capacity":120}],"reinforcements":[],"era_rules":ERA[era],
++  "sources":SOURCES["normandy" if era=="ww2" else "1973" if era=="coldwar" else "gulf"],
++  "design_notes":"这是受真实战役地理与编制启发的可玩作战级抽象。编制名称来自公开史料，但六角地图、单位位置、战斗数值、补给、时间尺度与胜利条件均为游戏设计；不代表精确历史地图、兵力或战果。"}
++
++ALLIED_NORM=["4th Infantry Division","82nd Airborne Division","101st Airborne Division","1st Infantry Division","29th Infantry Division","90th Infantry Division","9th Infantry Division","79th Infantry Division","8th Infantry Division","30th Infantry Division","2nd Armored Division","3rd Armored Division","4th Armored Division","6th Armored Division","1st Engineer Special Brigade","2nd Ranger Battalion","5th Ranger Battalion","VII Corps Artillery","V Corps Artillery","First U.S. Army"]
++GERMAN_NORM=["709th Infantry Division","243rd Infantry Division","91st Air Landing Division","352nd Infantry Division","716th Infantry Division","77th Infantry Division","353rd Infantry Division","2nd SS Panzer Division","17th SS Panzergrenadier Division","Panzer Lehr Division","5th Parachute Division","6th Parachute Regiment","30th Mobile Brigade","100th Panzer Replacement Battalion","206th Panzer Battalion","LXXXIV Corps","II Parachute Corps","XLVII Panzer Corps","Seventh Army","Panzer Group West"]
++ISR=["143rd Armored Division","162nd Armored Division","252nd Armored Division","14th Armored Brigade","401st Armored Brigade","460th Armored Brigade","600th Armored Brigade","217th Armored Brigade","247th Paratroopers Brigade","35th Paratroopers Brigade","11th Infantry Brigade","204th Mechanized Brigade","274th Armored Brigade","7th Armored Brigade","188th Armored Brigade","679th Armored Brigade","205th Armored Brigade","4th Brigade","Golani Brigade","Northern Command"]
++EGY=["Second Field Army","Third Field Army","2nd Infantry Division","16th Infantry Division","18th Infantry Division","19th Infantry Division","7th Infantry Division","4th Armored Division","21st Armored Division","23rd Mechanized Division","6th Mechanized Division","25th Independent Armored Brigade","15th Independent Armored Brigade","130th Amphibious Brigade","135th Infantry Brigade","Sa'iqa Group 127","Sa'iqa Group 129","Second Army Artillery","Third Army Artillery","Egyptian Air Defense Command"]
++SYR=["Syrian 1st Armored Division","Syrian 3rd Armored Division","Syrian 5th Infantry Division","Syrian 7th Infantry Division","Syrian 9th Infantry Division","Syrian 47th Independent Armored Brigade","Syrian 51st Independent Armored Brigade","Syrian 81st Armored Brigade","Syrian 43rd Mechanized Brigade","Syrian 46th Armored Brigade","Syrian 52nd Mechanized Brigade","Syrian 58th Mechanized Brigade","Syrian 61st Infantry Brigade","Syrian 85th Infantry Brigade","Syrian 90th Infantry Brigade","Syrian 112th Infantry Brigade","Syrian 121st Mechanized Brigade","Syrian 132nd Mechanized Brigade","Syrian 141st Mechanized Brigade","Syrian Air Defense Command"]
++COAL=["VII Corps","XVIII Airborne Corps","1st Infantry Division (Mechanized)","1st Armored Division","3rd Armored Division","1st Cavalry Division","2nd Armored Cavalry Regiment","3rd Armored Cavalry Regiment","11th Aviation Brigade","210th Field Artillery Brigade","42nd Field Artillery Brigade","75th Field Artillery Brigade","82nd Airborne Division","101st Airborne Division (Air Assault)","24th Infantry Division (Mechanized)","6th French Light Armored Division","British 1st Armoured Division","Tiger Brigade, 2nd Armored Division","1st Marine Division","2nd Marine Division"]
++IRQ=["Iraqi III Corps","Iraqi IV Corps","Iraqi VII Corps","Tawakalna Republican Guard Division","Medina Republican Guard Division","Hammurabi Republican Guard Division","Adnan Republican Guard Division","Nebuchadnezzar Republican Guard Division","Al Faw Infantry Division","26th Infantry Division","29th Infantry Division","31st Infantry Division","48th Infantry Division","5th Mechanized Division","3rd Armored Division","6th Armored Division","10th Armored Division","12th Armored Division","52nd Armored Division","Jihad Corps"]
++
++def build():
++ sc=[]
++ tut=scenario("tutorial","沙盘入门","边境河谷演习","modern","1991-01-01",12,9,"desert",COAL[:6],IRQ[:6],7,"学习侦察、补给、命令与同时回合结算。")
++ tut["max_turns"]=6;tut["hex_km"]=4;tut["sources"]=[];tut["design_notes"]="虚构教学演习；单位名称仅用于帮助识别兵种，所有态势和数值均为教学设计。"
++ sc.append(tut)
++ sc += [
++ scenario("normandy_bridgehead","诺曼底桥头堡","犹他海滩至科唐坦","ww2","1944-06-06",28,18,"normandy",ALLIED_NORM,GERMAN_NORM,440606,"盟军需要打通滩头出口并巩固桥头堡，德军则利用沼泽、河流与博卡日迟滞推进。"),
++ scenario("normandy_breakout","诺曼底突破","圣洛以西的突破战","ww2","1944-07-25",32,20,"normandy",ALLIED_NORM,GERMAN_NORM,440725,"盟军寻求穿透纵深并控制南向道路，德军以装甲预备队封堵突破口。"),
++ scenario("sinai_1973","西奈运河战线","渡河与反突击","coldwar","1973-10-06",30,18,"sinai",ISR,EGY,731006,"埃及军建立运河东岸桥头堡，以军集结装甲预备队并寻找反击时机。"),
++ scenario("golan_1973","戈兰高地","高地防御与预备队","coldwar","1973-10-06",24,18,"golan",ISR,SYR,731007,"叙军沿高地轴线推进，以军依托山脊与道路争取动员和反击时间。"),
++ scenario("gulf_west","沙漠左钩拳","西部纵深机动","modern","1991-02-24",36,22,"desert",COAL,IRQ,910224,"多国部队从西侧实施纵深机动，伊军需要保持交通线并组织纵深防御。"),
++ scenario("gulf_kuwait","科威特地面战","突破障碍与解放通道","modern","1991-02-24",30,20,"desert",COAL,IRQ,910225,"多国部队突破筑垒带并争夺北向通道，伊军力图延缓突破并保存退路。")]
++ OUT.mkdir(parents=True,exist_ok=True)
++ for s in sc:(OUT/f"{s['id']}.json").write_text(json.dumps(s,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
++
++def validate():
++ errors=[]; files=sorted(OUT.glob("*.json"))
++ for f in files:
++  try:s=json.loads(f.read_text(encoding="utf-8"))
++  except Exception as e:errors.append(f"{f.name}: invalid JSON: {e}");continue
++  w,h=s["width"],s["height"]; coords=set(); ids=set()
++  for t in s["tiles"]:
++   pos=(t["q"],t["r"])
++   if pos in coords:errors.append(f"{f.name}: duplicate tile {pos}")
++   coords.add(pos)
++   if t["terrain"] not in TERRAINS:errors.append(f"{f.name}: bad terrain")
++  if len(coords)!=w*h:errors.append(f"{f.name}: expected {w*h} tiles, got {len(coords)}")
++  for u in s["units"]:
++   if u["id"] in ids:errors.append(f"{f.name}: duplicate unit id {u['id']}")
++   ids.add(u["id"])
++   if (u["q"],u["r"]) not in coords:errors.append(f"{f.name}: off-map unit {u['id']}")
++   if u["type"] not in TYPES:errors.append(f"{f.name}: bad unit type")
++  for o in s["objectives"]:
++   if (o["q"],o["r"]) not in coords:errors.append(f"{f.name}: off-map objective {o['name']}")
++  walk={p for p in coords if next(t for t in s["tiles"] if (t["q"],t["r"])==p)["terrain"]!="water" or next(t for t in s["tiles"] if (t["q"],t["r"])==p)["bridge"]}
++  start=next(iter(walk));seen={start};q=deque([start])
++  while q:
++   x,y=q.popleft()
++   for d in ((1,0),(1,-1),(0,-1),(-1,0),(-1,1),(0,1)):
++    n=(x+d[0],y+d[1])
++    if n in walk and n not in seen:seen.add(n);q.append(n)
++  if seen!=walk:errors.append(f"{f.name}: walkable map disconnected ({len(walk-seen)} unreachable)")
++ print(f"validated {len(files)} scenarios; errors={len(errors)}")
++ for e in errors:print(e)
++ return not errors
++
++if __name__=="__main__":
++ ap=argparse.ArgumentParser();ap.add_argument("--generate",action="store_true");a=ap.parse_args()
++ if a.generate:build()
++ raise SystemExit(0 if validate() else 1)

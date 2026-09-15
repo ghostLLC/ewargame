@@ -1,7 +1,40 @@
 # Development ledger — 2026-09-10-ewargame
 
-Approved scope in spec. Repository was empty; branch codex/first-playable initialized. Godot official Windows archive downloaded before interruption.
+Approved scope in spec. Branch `codex/first-playable` carried core/session/UI/MCP implementation.
 
-Preflight interfaces: Core -> Content uses exact scenario schema; Core -> Session uses WarEngine static methods; Session -> UI uses observation only; Session -> MCP will use scoped loopback JSON. Owners do not share files. Each task matches its stated deliverable; final integration owns cross-component verification.
+Preflight interfaces: Core -> Content uses exact scenario schema; Core -> Session uses WarEngine static methods; Session -> UI uses observation only; Session -> MCP uses scoped loopback JSON.
 
-Tasks 1–5: pending. Real local Agent acceptance excluded by explicit user instruction.
+## 2026-09-15 — content remediation + acceptance (worktree `codex/content-fix`)
+
+### Content
+- Rewrote generator/validator; regenerated seven scenarios; CONTENT PASS.
+- Explicit types, scenario-scoped rosters/maps, legal deployment, tutorial staging.
+- Reinforcements: Golan T2, Sinai T3, breakout T4. Sinai `night_cycle` + weather fields. Tutorial staged practice text.
+
+### Session / UI
+- `start_game` accepts `play_mode="lan"` (host/join still required to open sockets).
+- Observer pause exposed (`observer_paused()`, menu + commit button label).
+- Save slots slot1–3 in campaign menu.
+
+### Acceptance (same machine)
+| Check | Result |
+|---|---|
+| content validate | PASS |
+| core_test | PASS 56 |
+| AI 7 scenarios | PASS 7/7 |
+| session_smoke | PASS 13 |
+| lan_smoke dual-process | PASS (not dual-physical-machine) |
+| bridge/test.mjs | PASS 3/3 |
+| UI smoke | captured |
+| Windows export | artifacts/win/ewargame.exe |
+
+### Scripts added
+- `game/session_smoke.gd`, `scripts/integration_smoke.ps1`
+- `game/lan_host_smoke.gd`, `game/lan_guest_smoke.gd`, `scripts/lan_smoke.ps1`
+- `game/ai_accept.gd` (headless AI runner)
+- `scripts/package.ps1` (export preset + release)
+
+### Residual
+- Dual physical machine LAN not claimed
+- No live Agent full match (excluded)
+- Smoke helper scripts excluded from export preset
