@@ -113,7 +113,7 @@ static func observe(state: Dictionary, side: int) -> Dictionary:
 	if side not in [0, 1]:
 		return {}
 	var scenario: Dictionary = state.scenario
-	var result = {"scenario_id": scenario.get("id", ""), "title": scenario.get("title", ""), "era": scenario.get("era", "ww2"), "turn": int(state.turn), "max_turns": int(scenario.get("max_turns", 20)), "side": side, "phase": state.phase, "map": {"width": scenario.get("width", 0), "height": scenario.get("height", 0), "tiles": scenario.get("tiles", []).duplicate(true)}, "units": [], "sides": scenario.get("sides", []).duplicate(true), "objectives": state.objectives.duplicate(true), "depots": [], "weather": state.weather, "scores": state.scores.duplicate(), "ready": state.ready.duplicate(), "logs": [], "contacts": [], "orders": {}, "hex_km": scenario.get("hex_km", 5), "turn_hours": scenario.get("turn_hours", 6), "support": state.get("support", {}).get(str(side), {}).duplicate(true), "result": state.get("result", {}).duplicate(true), "date": scenario.get("date", ""), "description": scenario.get("description", ""), "design_notes": scenario.get("design_notes", ""), "sources": scenario.get("sources", []).duplicate(true)}
+	var result = {"scenario_id": scenario.get("id", ""), "title": scenario.get("title", ""), "era": scenario.get("era", "ww2"), "turn": int(state.turn), "max_turns": int(scenario.get("max_turns", 20)), "side": side, "phase": state.phase, "map": {"width": scenario.get("width", 0), "height": scenario.get("height", 0), "tiles": scenario.get("tiles", []).duplicate(true)}, "units": [], "sides": scenario.get("sides", []).duplicate(true), "objectives": state.objectives.duplicate(true), "depots": [], "weather": state.weather, "scores": state.scores.duplicate(), "ready": state.ready.duplicate(), "logs": [], "contacts": [], "orders": {}, "hex_km": scenario.get("hex_km", 5), "turn_hours": scenario.get("turn_hours", 6), "support": state.get("support", {}).get(str(side), {}).duplicate(true), "result": state.get("result", {}).duplicate(true), "date": scenario.get("date", ""), "description": scenario.get("description", ""), "design_notes": scenario.get("design_notes", ""), "sources": scenario.get("sources", []).duplicate(true), "weather_cycle": scenario.get("weather_cycle", false), "upcoming_reinforcements": []}
 	var visible = _visible(state, side)
 	for unit in state.units:
 		if float(unit.strength) <= 0:
@@ -124,6 +124,13 @@ static func observe(state: Dictionary, side: int) -> Dictionary:
 				result.orders[unit.id] = state.orders[unit.id].duplicate(true)
 		elif visible.has(unit.id):
 			result.units.append(_mask(unit, state.turn))
+	for rf_index in range(scenario.get("reinforcements", []).size()):
+		if state.reinforced.has(rf_index):
+			continue
+		var entry: Dictionary = scenario.reinforcements[rf_index]
+		var ru = entry.get("unit", {})
+		if int(ru.get("side", -1)) == side:
+			result.upcoming_reinforcements.append({"turn": int(entry.get("turn", 1)), "name": str(ru.get("name", "增援")), "type": str(ru.get("type", "infantry")), "q": int(ru.get("q", 0)), "r": int(ru.get("r", 0))})
 	for depot in scenario.get("depots", []):
 		if int(depot.side) == side:
 			result.depots.append(depot.duplicate(true))
@@ -144,6 +151,7 @@ static func resolve(original: Dictionary) -> Dictionary:
 	var rng = RandomNumberGenerator.new()
 	rng.seed = int(state.seed) + int(state.turn) * 104729
 	_reinforce(state)
+	_advance_weather(state, rng)
 	_supply(state, true)
 	for unit in state.units:
 		unit["moved"] = false
@@ -160,9 +168,6 @@ static func resolve(original: Dictionary) -> Dictionary:
 	state.turn = int(state.turn) + 1
 	state.ready = [false, false]
 	state.support = {}
-	var cycle = state.scenario.get("weather_cycle", [])
-	if not cycle.is_empty():
-		state.weather = str(cycle[(int(state.turn) - 1) % cycle.size()])
 	_update_contacts(state)
 	for event in state.events:
 		state.logs.append(event.text)
@@ -668,6 +673,30 @@ static func _reinforce(state: Dictionary) -> void:
 		state.reinforced.append(index)
 		_event(state, unit.side, "增援抵达：%s" % unit.name)
 
+
+static func _advance_weather(state: Dictionary, rng: RandomNumberGenerator) -> void:
+	var schedule = state.scenario.get("weather_schedule", [])
+	if schedule is Array and not schedule.is_empty():
+		var turn = int(state.turn)
+		var pick = schedule[(turn - 1) % schedule.size()]
+		state.weather = str(pick)
+		return
+	if not state.scenario.get("weather_cycle", false):
+		return
+	# Light Markov-ish rotation so long battles feel less static.
+	var roll = rng.randf()
+	var current = str(state.weather)
+	var table = {
+		"clear": ["clear", "clear", "overcast", "fog"],
+		"overcast": ["overcast", "clear", "rain", "fog"],
+		"rain": ["rain", "overcast", "clear", "storm"],
+		"fog": ["fog", "clear", "overcast", "rain"],
+		"storm": ["storm", "rain", "overcast"],
+		"snow": ["snow", "overcast", "fog"],
+	}
+	var options = table.get(current, ["clear", "overcast", "rain", "fog"])
+	state.weather = options[int(floor(roll * options.size())) % options.size()]
+
 static func _score(state: Dictionary) -> void:
 	for objective in state.objectives:
 		var present = [false, false]
@@ -705,6 +734,7 @@ static func _score(state: Dictionary) -> void:
 
 static func ai_orders(state: Dictionary, side: int) -> Array:
 	# Decisions use the exact public view; never read enemy authority data or orders.
+	var difficulty = str(state.get("ai_difficulty", "normal"))
 	var view = observe(state, side)
 	if view.is_empty() or view.phase != "planning" or view.ready[side]:
 		return []
@@ -716,7 +746,9 @@ static func ai_orders(state: Dictionary, side: int) -> Array:
 		var kind = "defend"
 		var target = []
 		var stance = "balanced"
-		if unit.organization < 35 or unit.fatigue > 65 or unit.ammo < 10:
+		var rest_org = 35 if difficulty == "easy" else 30 if difficulty == "hard" else 35
+		var rest_fatigue = 55 if difficulty == "easy" else 70 if difficulty == "hard" else 65
+		if unit.organization < rest_org or unit.fatigue > rest_fatigue or unit.ammo < 10:
 			kind = "rest"
 		else:
 			var best = {}
@@ -738,7 +770,8 @@ static func ai_orders(state: Dictionary, side: int) -> Array:
 			if not nearest.is_empty() and enemy_distance <= 1 and unit.type not in ["hq", "logistics", "artillery", "air_defense"]:
 				kind = "attack"
 				target = _pos(nearest)
-				stance = "aggressive" if unit.organization > 70 else "balanced"
+				var aggro = 60 if difficulty == "hard" else 80 if difficulty == "easy" else 70
+				stance = "aggressive" if unit.organization > aggro else "balanced"
 			elif not best.is_empty():
 				target = [best.q, best.r]
 				assigned[_key(target)] = int(assigned.get(_key(target), 0)) + 1

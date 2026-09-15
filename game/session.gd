@@ -31,6 +31,7 @@ var _discovery: PacketPeerUDP
 var _agent: Node
 var _observer_timer = 0.0
 var _observer_paused = false
+var ai_difficulty: String = "normal"
 
 func _ready() -> void:
 	_engine = load("res://core/engine.gd")
@@ -185,7 +186,16 @@ func accept_handoff() -> void:
 		pending_handoff = false
 		_publish()
 
+func set_ai_difficulty(level: String) -> void:
+	if level not in ["easy", "normal", "hard"]:
+		notice.emit("难度应为 easy/normal/hard")
+		return
+	ai_difficulty = level
+	notice.emit("AI 难度：" + level)
+
 func _apply_ai(side: int) -> void:
+	if not _state.is_empty():
+		_state["ai_difficulty"] = ai_difficulty
 	for order in _engine.ai_orders(_state, side):
 		_engine.submit_order(_state, side, order)
 
@@ -223,6 +233,53 @@ func _publish() -> void:
 			if multiplayer.get_peers().has(int(peer)):
 				_receive_view.rpc_id(int(peer), _engine.observe(_state, int(_roles[peer])))
 
+func replay_goto(index: int) -> void:
+	if mode == "lan" and not _is_host:
+		notice.emit("联网客户端使用战报查看历史；完整回放保存在房主端")
+		return
+	if _history.is_empty() or pending_handoff:
+		return
+	_replay_index = clampi(index, 0, _history.size() - 1)
+	replay_active = _replay_index < _history.size() - 1
+	_publish()
+
+func export_after_action() -> String:
+	var scenario_title = str(_state.get("scenario", {}).get("title", "战役")) if not _state.is_empty() else "战役"
+	var lines = ["战线 · 战役指挥 — 战后报告", "剧本：" + scenario_title, ""]
+	if not _state.is_empty():
+		lines.append("最终回合：%s / %s" % [_state.get("turn"), _state.get("scenario", {}).get("max_turns", "?")])
+		lines.append("积分：%s : %s" % [_state.get("scores", [0, 0])[0], _state.get("scores", [0, 0])[1]])
+		var result = _state.get("result", {})
+		if result is Dictionary and not result.is_empty():
+			lines.append("结果：winner=%s  %s" % [result.get("winner", "-"), result.get("reason", "")])
+		lines.append("天气：%s" % _state.get("weather", "clear"))
+		lines.append("")
+		lines.append("单位存续：")
+		for unit in _state.get("units", []):
+			if float(unit.get("strength", 0)) > 0:
+				lines.append("- [%s] %s 兵力%s 组织%s @(%s,%s)" % [unit.get("side"), unit.get("name"), int(unit.get("strength", 0)), int(unit.get("organization", 0)), unit.get("q"), unit.get("r")])
+		lines.append("")
+	lines.append("逐回合战报：")
+	var index = 0
+	for snapshot in _history:
+		index += 1
+		lines.append("-- 回合 %s | 分 %s:%s | 天气 %s --" % [snapshot.get("turn", index), snapshot.get("scores", [0, 0])[0], snapshot.get("scores", [0, 0])[1], snapshot.get("weather", "?")])
+		for event in snapshot.get("events", snapshot.get("logs", [])):
+			var message = event
+			if event is Dictionary:
+				message = event.get("text", str(event))
+			lines.append("  " + str(message))
+	var path = "user://after_action_report.txt"
+	var file = FileAccess.open(path, FileAccess.WRITE)
+	if file == null:
+		notice.emit("无法写入战后报告")
+		return ""
+	file.store_string("\n".join(lines) + "\n")
+	file.close()
+	var absolute = ProjectSettings.globalize_path(path)
+	notice.emit("战后报告已导出：" + absolute)
+	return absolute
+
 func replay_step(offset: int) -> void:
 	if mode == "lan" and not _is_host:
 		notice.emit("联网客户端使用战报查看历史；完整回放保存在房主端")
@@ -236,7 +293,15 @@ func replay_step(offset: int) -> void:
 	_publish()
 
 func _save_payload() -> Dictionary:
-	return {"state": _state, "history": _history, "mode": mode, "player_side": player_side, "guest_token": _guest_token, "port": _host_port, "handoff": pending_handoff}
+	return {"state": _state, "history": _history, "mode": mode, "player_side": player_side, "guest_token": _guest_token, "port": _host_port, "handoff": pending_handoff, "ai_difficulty": ai_difficulty}
+
+func list_save_slots() -> Array:
+	return Storage.list_saves()
+
+func delete_save(slot: String) -> bool:
+	var result = Storage.delete_save(slot)
+	notice.emit("存档已删除" if result.ok else str(result.error))
+	return result.ok
 
 func save_game(slot: String = "quicksave") -> bool:
 	if _state.is_empty() or (mode == "lan" and not _is_host):
@@ -264,6 +329,7 @@ func load_game(slot: String = "quicksave") -> bool:
 	mode = str(data.get("mode", "ai"))
 	player_side = clampi(int(data.get("player_side", 0)), 0, 1)
 	pending_handoff = bool(data.get("handoff", false))
+	ai_difficulty = str(data.get("ai_difficulty", "normal"))
 	_guest_token = str(data.get("guest_token", ""))
 	if mode == "lan":
 		_open_host(int(data.get("port", 24680)))

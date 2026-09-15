@@ -68,6 +68,8 @@ powershell -File scripts\package.ps1
 ```powershell
 powershell -File scripts\integration_smoke.ps1   # 会话层：下令/结算/存读档/观察暂停/lan 模式
 powershell -File scripts\lan_smoke.ps1           # 同机双进程 LAN（不等于双物理机证据）
+powershell -File scripts\lan_reconnect_smoke.ps1 # 断线后票据重连
+powershell -File scripts\run_acceptance.ps1      # 一键验收门禁（排除真实 Agent / 双机）
 ```
 
 ## 边界与诚实声明

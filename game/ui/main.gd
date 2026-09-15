@@ -14,6 +14,7 @@ var stance: String = "balanced"
 var selected_scenario: String = ""
 var selected_mode: String = "ai"
 var selected_side: int = 0
+var selected_difficulty: String = "normal"
 var canvas
 var shell: VBoxContainer
 var inspector: VBoxContainer
@@ -236,7 +237,14 @@ func _build_menu() -> void:
 	side_choice.select(selected_side)
 	side_choice.item_selected.connect(func(index): selected_side = index)
 	config.add_child(side_choice)
-	var begin = _button("开始战役    →",func(): selected_id = ""; pending_order = ""; GameSession.start_game(selected_scenario,selected_mode,selected_side))
+	config.add_child(_label("AI 难度",12,GOLD))
+	var diffs = OptionButton.new()
+	var diff_ids = ["easy","normal","hard"]
+	for item in ["简单 · 保守","标准","强硬 · 积极"]: diffs.add_item(item)
+	diffs.select(maxi(0,diff_ids.find(selected_difficulty)))
+	diffs.item_selected.connect(func(index): selected_difficulty = diff_ids[index])
+	config.add_child(diffs)
+	var begin = _button("开始战役    →",func(): selected_id = ""; pending_order = ""; GameSession.ai_difficulty = selected_difficulty; GameSession.start_game(selected_scenario,selected_mode,selected_side))
 	begin.custom_minimum_size.y = 48
 	begin.add_theme_stylebox_override("normal",_box(Color("a08954"),5,Color("d7bc7e")))
 	begin.add_theme_color_override("font_color",Color("122c2b"))
@@ -266,7 +274,7 @@ func _build_game() -> void:
 	turn_box.add_theme_constant_override("separation",2)
 	top.add_child(turn_box)
 	turn_box.add_child(_label("回合  %02d / %02d" % [view.get("turn",1),view.get("max_turns",12)],21,GOLD))
-	var weather_names = {"clear":"晴朗","rain":"降雨","snow":"降雪","fog":"浓雾","overcast":"阴天","storm":"风暴"}
+	var weather_names = {"clear":"晴朗","rain":"降雨","snow":"降雪","fog":"浓雾","overcast":"阴天","storm":"风暴","night":"夜暗"}
 	var weather = str(view.get("weather","clear"))
 	turn_box.add_child(_label("%s  ·  积分 %s : %s" % [weather_names.get(weather,weather),view.get("scores",[0,0])[0],view.get("scores",[0,0])[1]],12,MUTED))
 	top.add_child(_button("战报",_reports))
@@ -369,6 +377,10 @@ func _build_game() -> void:
 		commit_box.add_child(_label("双方 AI 持续推演 · 可随时暂停",10,MUTED))
 	else:
 		commit_box.add_child(_label("双方命令同时结算 · 六个战术时段" if not (true in ready) else "命令已锁定 · 等待另一方",10,MUTED))
+	var upcoming: Array = view.get("upcoming_reinforcements", [])
+	if upcoming is Array and not upcoming.is_empty():
+		var rf = upcoming[0]
+		commit_box.add_child(_label("增援预告：回合 %s %s" % [rf.get("turn"), rf.get("name")],10,MUTED))
 	if bool(view.get("replay_active",false)):
 		notice_text = "回放 %s / %s：只读快照。点击「回放 →」返回最新态势。" % [view.get("replay_index",0),view.get("replay_count",0)]
 
@@ -447,6 +459,18 @@ func _build_roster() -> void:
 	roster.add_child(replay)
 	replay.add_child(_button("← 回放",func(): GameSession.replay_step(-1)))
 	replay.add_child(_button("回放 →",func(): GameSession.replay_step(1)))
+	var count = int(GameSession.view.get("replay_count", 1))
+	var index = int(GameSession.view.get("replay_index", maxi(count - 1, 0)))
+	var slider = HSlider.new()
+	slider.min_value = 0
+	slider.max_value = maxi(count - 1, 0)
+	slider.value = index
+	slider.step = 1
+	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	slider.value_changed.connect(func(v): GameSession.replay_goto(int(v)))
+	roster.add_child(slider)
+	roster.add_child(_label("%s/%s" % [index + 1, count],11,MUTED))
+	roster.add_child(_button("导出战报",func(): GameSession.export_after_action()))
 
 func _select_unit(id: String) -> void:
 	if not pending_order.is_empty(): return
@@ -561,14 +585,50 @@ func _game_menu() -> void:
 		var slot_name = slot
 		row.add_child(_button("存 " + slot_name,func(): GameSession.save_game(slot_name)))
 		row.add_child(_button("读 " + slot_name,func(): GameSession.load_game(slot_name); dialog.queue_free()))
+		row.add_child(_button("删",func(): GameSession.delete_save(slot_name)))
+	list.add_child(_button("存档管理…",func(): dialog.queue_free(); _save_manager()))
 	list.add_child(_button("保存战役",func(): GameSession.save_game(); dialog.queue_free()))
 	list.add_child(_button("载入战役",func(): GameSession.load_game(); dialog.queue_free()))
+	var diff_row = HBoxContainer.new()
+	list.add_child(diff_row)
+	diff_row.add_child(_label("难度",12,MUTED))
+	for level in ["easy","normal","hard"]:
+		var lv = level
+		diff_row.add_child(_button(str(lv),func(): GameSession.set_ai_difficulty(lv)))
 	if GameSession.mode == "observer":
 		list.add_child(_button("暂停/继续推演",func(): GameSession.commit_turn(); dialog.queue_free()))
 	list.add_child(_button("指挥手册",func(): dialog.queue_free(); _rules()))
 	if GameSession.has_method("agent_config_path"):
 		list.add_child(_button("Agent 连接配置",func(): _dialog("Agent 接入", "连接配置保存在本机文件，供受信任的 MCP 客户端使用：\n\n" + str(GameSession.agent_config_path()) + "\n\nAgent 对战模式：本地指挥一方，外部 Agent 控制另一方。实际 Agent 对局需要单独接入客户端。")))
 	list.add_child(_button("返回战役档案",func(): selected_id = ""; pending_order = ""; GameSession.close_game()))
+	dialog.popup_centered()
+	dialog.confirmed.connect(dialog.queue_free)
+	dialog.canceled.connect(dialog.queue_free)
+
+
+func _save_manager() -> void:
+	var dialog = AcceptDialog.new()
+	dialog.title = "存档管理"
+	dialog.ok_button_text = "关闭"
+	add_child(dialog)
+	var list = VBoxContainer.new()
+	list.custom_minimum_size = Vector2(420,0)
+	dialog.add_child(list)
+	var entries: Array = GameSession.list_save_slots()
+	if entries.is_empty():
+		list.add_child(_label("尚无本地存档",13,MUTED))
+	for entry in entries:
+		var row = HBoxContainer.new()
+		list.add_child(row)
+		var stamp = Time.get_datetime_dict_from_unix_time(int(entry.get("modified",0)))
+		var label = "%s  ·  %04d-%02d-%02d %02d:%02d  ·  %s KB" % [entry.get("slot"), stamp.year, stamp.month, stamp.day, stamp.hour, stamp.minute, int(entry.get("bytes",0))/1024]
+		var slot_name = str(entry.get("slot"))
+		row.add_child(_button("读取",func(): GameSession.load_game(slot_name); dialog.queue_free()))
+		row.add_child(_button("覆盖保存",func(): GameSession.save_game(slot_name)))
+		row.add_child(_button("删除",func(): GameSession.delete_save(slot_name); dialog.queue_free(); _save_manager()))
+		var info = _label(label,11,MUTED)
+		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(info)
 	dialog.popup_centered()
 	dialog.confirmed.connect(dialog.queue_free)
 	dialog.canceled.connect(dialog.queue_free)

@@ -38,3 +38,16 @@ Preflight interfaces: Core -> Content uses exact scenario schema; Core -> Sessio
 - Dual physical machine LAN not claimed
 - No live Agent full match (excluded)
 - Smoke helper scripts excluded from export preset
+
+## 2026-09-16 — polish pass (worktree `codex/content-fix`)
+
+- Replay timeline slider + jump; after-action report export (`user://after_action_report.txt`)
+- Weather schedule/cycle (breakout, sinai+night, golan); fixed bool/array weather_cycle crash
+- Upcoming-reinforcement hint in command bar
+- AI difficulty easy/normal/hard (menu + in-game)
+- Save manager (list timestamps, load/overwrite/delete)
+- LAN reconnect smoke (`scripts/lan_reconnect_smoke.ps1`)
+- Acceptance gate `scripts/run_acceptance.ps1`; version 0.1.1; package rebuilt
+
+### Evidence
+core 56 · AI 7/7 · session 13 · MCP 3/3 · LAN · LAN reconnect · CONTENT PASS · export exe

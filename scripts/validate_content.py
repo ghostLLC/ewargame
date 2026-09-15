@@ -820,7 +820,7 @@ def build_normandy_breakout() -> dict:
                 "unit": formation("装甲预备队加强连", "armor", "battalion", 1, 28, 12, idx=40, strength=85, organization=90),
             }
         ],
-        extra={"weather": "clear", "night_cycle": False},
+        extra={"weather": "clear", "night_cycle": False, "weather_cycle": True, "weather_schedule": ["clear", "overcast", "rain", "clear", "overcast", "clear", "fog", "clear", "clear", "overcast", "clear", "clear"]},
     )
 
 
@@ -851,7 +851,7 @@ def build_sinai() -> dict:
                 "unit": formation("增援装甲旅", "armor", "brigade", 0, 28, 9, idx=40, strength=92, organization=88),
             }
         ],
-        extra={"weather": "clear", "night_cycle": True, "start_hour": 6},
+        extra={"weather": "clear", "night_cycle": True, "start_hour": 6, "weather_cycle": True, "weather_schedule": ["clear", "clear", "overcast", "clear", "night", "clear", "fog", "clear"]},
     )
 
 
@@ -880,7 +880,7 @@ def build_golan() -> dict:
                 "unit": formation("预备装甲营", "armor", "battalion", 0, 21, 14, idx=40, strength=90, organization=85),
             }
         ],
-        extra={"weather": "clear", "night_cycle": False},
+        extra={"weather": "clear", "night_cycle": False, "weather_cycle": True, "weather_schedule": ["clear", "clear", "overcast", "clear", "fog", "clear", "clear", "overcast", "clear", "clear", "clear", "clear"]},
     )
 
 

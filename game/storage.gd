@@ -64,3 +64,38 @@ static func read_save(slot: String) -> Dictionary:
 	if not data is Dictionary or not data.get("state") is Dictionary:
 		return {"ok": false, "error": "存档内容无效"}
 	return {"ok": true, "data": data}
+
+static func list_saves() -> Array:
+	var dir = DirAccess.open("user://saves")
+	var out: Array = []
+	if dir == null:
+		return out
+	for name in dir.get_files():
+		if not name.ends_with(".json"):
+			continue
+		var slot = name.trim_suffix(".json")
+		if slot.ends_with(".tmp"):
+			continue
+		var path = "user://saves/" + name
+		out.append({
+			"slot": slot,
+			"modified": int(FileAccess.get_modified_time(path)),
+			"bytes": int(FileAccess.get_file_as_bytes(path).size()),
+		})
+	out.sort_custom(func(a, b): return int(a.modified) >= int(b.modified))
+	return out
+
+static func delete_save(slot: String) -> Dictionary:
+	var path = slot_path(slot)
+	if path.is_empty():
+		return {"ok": false, "error": "无效存档名称"}
+	if not FileAccess.file_exists(path) and not FileAccess.file_exists(path + ".bak"):
+		return {"ok": false, "error": "没有找到存档"}
+	if FileAccess.file_exists(path):
+		DirAccess.remove_absolute(path)
+	if FileAccess.file_exists(path + ".bak"):
+		DirAccess.remove_absolute(path + ".bak")
+	if FileAccess.file_exists(path + ".tmp"):
+		DirAccess.remove_absolute(path + ".tmp")
+	return {"ok": true}
+
