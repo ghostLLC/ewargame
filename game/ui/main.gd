@@ -15,6 +15,7 @@ var selected_scenario: String = ""
 var selected_mode: String = "ai"
 var selected_side: int = 0
 var selected_difficulty: String = "normal"
+var ui_scale: float = 1.0
 var canvas
 var shell: VBoxContainer
 var inspector: VBoxContainer
@@ -51,7 +52,7 @@ func _ready() -> void:
 
 func _setup_theme() -> void:
 	var t = Theme.new()
-	t.default_font_size = 14
+	t.default_font_size = int(14 * ui_scale)
 	for path in ["res://assets/fonts/NotoSansSC-Regular.ttf", "res://assets/fonts/NotoSansSC.ttf", "res://assets/fonts/NotoSansSC-Regular.otf"]:
 		if ResourceLoader.exists(path):
 			t.default_font = load(path)
@@ -327,6 +328,12 @@ func _build_menu() -> void:
 	diffs.select(maxi(0,diff_ids.find(selected_difficulty)))
 	diffs.item_selected.connect(func(index): selected_difficulty = diff_ids[index])
 	config.add_child(diffs)
+	config.add_child(_label("界面缩放",12,GOLD))
+	var scale_row = HBoxContainer.new()
+	config.add_child(scale_row)
+	scale_row.add_child(_button("−",func(): ui_scale = clampf(ui_scale - 0.1, 0.85, 1.4); _setup_theme(); _refresh(),"缩小界面文字"))
+	scale_row.add_child(_label(str(snappedf(ui_scale, 0.05)),12,MUTED))
+	scale_row.add_child(_button("+",func(): ui_scale = clampf(ui_scale + 0.1, 0.85, 1.4); _setup_theme(); _refresh(),"放大界面文字"))
 	var begin = _button("开始战役    →",func(): selected_id = ""; pending_order = ""; GameSession.ai_difficulty = selected_difficulty; GameSession.start_game(selected_scenario,selected_mode,selected_side))
 	begin.custom_minimum_size.y = 48
 	begin.add_theme_stylebox_override("normal",_box(Color("a08954"),5,Color("d7bc7e")))

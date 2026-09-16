@@ -231,6 +231,11 @@ func _draw_counter(unit: Dictionary, rad: float, count: int) -> void:
 		draw_rect(Rect2(rect.position+Vector2(3,3),rect.size),color.darkened(0.2),false,1.5)
 	draw_rect(Rect2(rect.position+Vector2(1,2),rect.size),Color(0.14,0.19,0.17,0.24))
 	draw_rect(rect,color)
+	# Color-blind friendly hatch on enemy/secondary side.
+	if side != 0:
+		for i in range(4):
+			var y0 = rect.position.y + 4 + i * (rect.size.y * 0.18)
+			draw_line(Vector2(rect.position.x + 3, y0), Vector2(rect.end.x - 3, y0 + rect.size.y * 0.1), Color(0.15,0.12,0.1,0.25), 1.2, true)
 	draw_rect(Rect2(rect.position+Vector2(2,2),rect.size-Vector2(4,4)),Color(0.92,0.92,0.84,0.45),false,0.8)
 	if str(unit.get("id","")) == selected_id:
 		draw_rect(Rect2(rect.position-Vector2(4,4),rect.size+Vector2(8,8)),Color("b79953"),false,2.5)
@@ -270,16 +275,34 @@ func _draw_counter(unit: Dictionary, rad: float, count: int) -> void:
 	if count > 1: _label(at+Vector2(width*0.58,-height*0.3),str(count),INK,10)
 
 func _nearest(position: Vector2) -> Vector2i:
-	var best = Vector2i(-99,-99)
-	var distance = INF
-	for tile in observation.get("map",{}).get("tiles",[]):
-		var q = int(tile.get("q",0))
-		var r = int(tile.get("r",0))
-		var d = position.distance_to(_center(q,r))
-		if d < distance:
-			distance = d
-			best = Vector2i(q,r)
-	return best if distance < _base_radius()*zoom_level else Vector2i(-99,-99)
+	var map: Dictionary = observation.get("map", {})
+	var w = int(map.get("width", 12))
+	var h = int(map.get("height", 10))
+	if w <= 0 or h <= 0:
+		return Vector2i(-99, -99)
+	var rad = _base_radius() * zoom_level
+	if rad < 0.01:
+		return Vector2i(-99, -99)
+	var extent = Vector2(sqrt(3.0) * rad * (w - 1.0 + (h - 1.0) * 0.5), 1.5 * rad * (h - 1.0))
+	var origin = (size - extent) * 0.5 + pan
+	var local = position - origin
+	var rr = local.y / (1.5 * rad)
+	var qq = local.x / (sqrt(3.0) * rad) - rr * 0.5
+	var best = Vector2i(-99, -99)
+	var best_d = INF
+	var cq = int(round(qq))
+	var cr = int(round(rr))
+	for dq in range(-1, 2):
+		for dr in range(-1, 2):
+			var q = cq + dq
+			var r = cr + dr
+			if q < 0 or r < 0 or q >= w or r >= h:
+				continue
+			var d = position.distance_to(_center(q, r))
+			if d < best_d:
+				best_d = d
+				best = Vector2i(q, r)
+	return best if best_d < _base_radius() * zoom_level else Vector2i(-99, -99)
 
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:

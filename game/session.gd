@@ -215,7 +215,12 @@ func _resolve_turn() -> void:
 	_busy = true
 	_state = _engine.resolve(_state)
 	_state["ready"] = [false, false]
-	_history.append(_state.duplicate(true))
+	var snap = _state.duplicate(true)
+	# Tiles are large and only mutated in place for rare engineer bridges; share the array.
+	if snap.has("scenario") and _state.has("scenario"):
+		snap.scenario = _state.scenario.duplicate(false)
+		snap.scenario["tiles"] = _state.scenario.get("tiles", [])
+	_history.append(snap)
 	_busy = false
 	_replay_index = -1
 	Storage.write_save("autosave", _save_payload())
