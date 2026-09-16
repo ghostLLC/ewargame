@@ -378,7 +378,7 @@ func _build_game() -> void:
 	var filters = HBoxContainer.new()
 	map_header.add_child(filters)
 	filters.add_child(_label("态势",12,Color("47594d")))
-	for entry in [["terrain","地形"],["control","控制"],["supply","补给"]]:
+	for entry in [["terrain","地形"],["control","控制"],["zoc","控制区"],["supply","补给"]]:
 		var key = entry[0]
 		var button = _button(entry[1],func(): overlay_mode = key; canvas.overlay = key; canvas.queue_redraw())
 		button.custom_minimum_size.y = 28
@@ -401,7 +401,7 @@ func _build_game() -> void:
 	canvas.hex_hovered.connect(_on_hex_hovered)
 	var legend_bar = HBoxContainer.new()
 	map_column.add_child(legend_bar)
-	legend_bar.add_child(_label("蓝 / 红：阵营    金环：战略目标    虚线：本方命令    ?：历史接触",11,MUTED))
+	legend_bar.add_child(_label("蓝 / 红：阵营    金环：战略目标    虚线：本方命令    红晕：敌控制区    ?：历史接触",11,MUTED))
 	_spacer(legend_bar)
 	legend_bar.add_child(_label("拖动平移 · 滚轮缩放",11,MUTED))
 	var side_scroll = ScrollContainer.new()
@@ -430,6 +430,7 @@ func _build_game() -> void:
 		b.custom_minimum_size.x = 49
 		b.disabled = selected_id.is_empty() or GameSession.mode == "observer" or bool(view.get("replay_active",false))
 		order_buttons.add_child(b)
+	order_buttons.add_child(_button("清空命令",func(): GameSession.clear_orders(); _refresh(),"清除本回合已下达但未锁定的全部命令（Shift+Backspace）"))
 	var detail = HBoxContainer.new()
 	command_left.add_child(detail)
 	order_hint = _label(_command_hint(),12,GOLD)
@@ -558,10 +559,19 @@ func _inspect_unit() -> void:
 			if est is Dictionary and est.get("ok", false):
 				inspector.add_child(_label("交战预估  %s  约 %.1f:1" % [str(est.get("label","均势")), float(est.get("ratio",1.0))],12,GOLD))
 				inspector.add_child(_label("预计本方约 −%.1f · 敌方约 −%.1f" % [float(est.get("my_loss",0)), float(est.get("their_loss",0))],11,MUTED))
+				var reasons = est.get("reasons", [])
+				if reasons is Array and not reasons.is_empty():
+					inspector.add_child(_label("要点：" + "、".join(reasons),11,MUTED))
 	if pending_order in ["move","attack","recon","retreat"] and not hovered_hex.is_empty() and GameSession.has_method("preview_move"):
 		var pv = GameSession.preview_move(selected_id, hovered_hex)
 		if pv is Dictionary and pv.get("ok", false):
-			inspector.add_child(_label("路径预估  %s 格 · 约 %s 回合%s" % [int(pv.get("path",[]).size())-1, pv.get("turns"), "" if pv.get("fuel_ok", true) else " · 燃料可能不足"],11,GOLD))
+			var extra = ""
+			if not pv.get("zoc_stop_hex", []).is_empty():
+				extra += " · 进入控制区将停止机动"
+			if pv.get("blocked_by_stack", false):
+				extra += " · 目标格己方已满"
+			var turns = pv.get("effective_turns", pv.get("turns", 1))
+			inspector.add_child(_label("路径预估  %s 格 · 约 %s 回合%s%s" % [int(pv.get("path",[]).size())-1, turns, "" if pv.get("fuel_ok", true) else " · 燃料可能不足", extra],11,GOLD))
 	var stack = []
 	for other in GameSession.view.get("units", []):
 		if int(other.get("q",-1))==int(unit.get("q",-1)) and int(other.get("r",-1))==int(unit.get("r",-1)) and float(other.get("strength",0))>0:
@@ -642,6 +652,13 @@ func _on_hex_hovered(q: int, r: int) -> void:
 		if is_instance_valid(canvas):
 			canvas.preview_path = preview_path
 			canvas.queue_redraw()
+		if pending_order == "attack" and GameSession.has_method("estimate_combat"):
+			for other in GameSession.view.get("units", []):
+				if int(other.get("q",-1))==q and int(other.get("r",-1))==r and int(other.get("side",-1))!=int(GameSession.view.get("side",0)):
+					var est = GameSession.estimate_combat(selected_id, str(other.get("id","")))
+					if est is Dictionary and est.get("ok", false) and is_instance_valid(order_hint):
+						order_hint.text = "进攻预估 %s（约 %.1f:1）· 点击目标格确认" % [est.get("label"), float(est.get("ratio",1.0))]
+					break
 	elif is_instance_valid(canvas) and not preview_path.is_empty():
 		preview_path = []
 		canvas.preview_path = []
@@ -710,9 +727,38 @@ func _dialog(title_text: String, body_text: String, min_size: Vector2i = Vector2
 func _reports() -> void:
 	var text = "[color=#c6aa6d]战役态势与行动记录[/color]\n\n"
 	var view: Dictionary = GameSession.view
-	text += "当前回合：%s   积分：%s\n\n" % [view.get("turn",1),view.get("scores",[])]
+	text += "当前回合：%s   积分：%s · %s\n" % [view.get("turn",1), view.get("scores",[0,0])[0], view.get("scores",[0,0])[1]]
+	var sides = view.get("sides", [])
+	if sides is Array and sides.size() >= 2:
+		text += "%s vs %s\n\n" % [sides[0].get("name","蓝"), sides[1].get("name","红")]
+	else:
+		text += "\n"
+	text += "[color=#c6aa6d]战略目标[/color]\n"
+	var side_names = ["蓝方", "红方"]
+	if sides is Array and sides.size() >= 2:
+		side_names = [str(sides[0].get("name","蓝")), str(sides[1].get("name","红"))]
 	for objective in view.get("objectives",[]):
-		text += "战略目标 · %s / %s 分 / 控制方 %s\n" % [objective.get("name",""),objective.get("value",0),objective.get("owner","—")]
+		var owner = int(objective.get("owner", -1))
+		var owner_txt = "中立" if owner < 0 else side_names[owner]
+		text += "· %s  %s 分  ·  控制：%s\n" % [objective.get("name",""), objective.get("value",0), owner_txt]
+	var alive = [0, 0]
+	var org_sum = [0.0, 0.0]
+	for unit in view.get("units", []):
+		var s = int(unit.get("side", -1))
+		if s in [0, 1] and float(unit.get("strength", 0)) > 0:
+			alive[s] += 1
+			org_sum[s] += float(unit.get("organization", 0)) if s == int(view.get("side", 0)) else 50.0
+	text += "\n[color=#c6aa6d]兵力概览[/color]\n本方可战单位 %d" % alive[int(view.get("side", 0))]
+	if int(view.get("side", 0)) == 0:
+		text += " · 敌方可见 %d" % alive[1]
+	else:
+		text += " · 敌方可见 %d" % alive[0]
+	text += "\n"
+	var upcoming: Array = view.get("upcoming_reinforcements", [])
+	if upcoming is Array and not upcoming.is_empty():
+		text += "\n[color=#c6aa6d]增援预告[/color]\n"
+		for rf in upcoming:
+			text += "· 第 %s 回合  %s @(%s,%s)\n" % [rf.get("turn"), rf.get("name"), rf.get("q"), rf.get("r")]
 	text += "\n[color=#c6aa6d]最近行动[/color]\n"
 	var logs: Array = view.get("logs",[])
 	if logs.is_empty(): text += "尚无结算记录。双方锁定命令后，行动将在六个时段内同时展开。"
@@ -722,7 +768,7 @@ func _reports() -> void:
 	_dialog("战报 / AFTER ACTION REPORT",text)
 
 func _rules() -> void:
-	_dialog("指挥手册", "[font_size=25]在不确定中作出决定[/font_size]\n\n[color=#c6aa6d]01  阅读战场[/color]\n六角格代表固定公里数，每回合代表战役设定的小时数。地形、道路、河流和桥梁影响通行与战斗。金色圆环是计分目标；蓝、红算子代表不同阵营。\n\n[color=#c6aa6d]02  编排命令[/color]\n点击本方单位，选择机动、进攻或侦察，再点击目标格。固守、休整和预备直接作用于当前格。可选择谨慎、均衡或积极姿态。命令会持续执行，可在锁定前修改。同格堆叠单位可重复点击切换，也可从战斗序列选择。\n\n[color=#c6aa6d]03  同时结算 / WEGO[/color]\n双方分别下令并锁定，随后统一推进六个战术时段。敌军不会等待你的单位行动完毕。交战、退却、疲劳、弹药与燃料消耗均在结算中处理。\n\n[color=#c6aa6d]04  指挥与补给[/color]\n不要只看兵力。组织度、疲劳、燃料和弹药决定部队能否继续作战。总部距离、补给路线、补给吞吐量与时代能力会影响执行。使用补给图层查看本方枢纽，保护道路与后勤。\n\n[color=#c6aa6d]05  不完全情报[/color]\n只能查询本方详细状态及已观察到的敌军。问号是历史接触，未必代表敌军仍在原地。炮火、空援与战役侦察通过单位档案中的支援按钮指定目标。\n\n[color=#c6aa6d]06  操作与模式[/color]\n拖动地图平移，滚轮缩放；Esc 取消正在指定的命令。同机轮换时由交接遮罩保护双方信息。局域网由主机裁定状态。观战模式点击推进回合观看双方 AI。回放箭头读取历史快照。\n\n每个剧本含独立史料与设计说明；地图、兵力强度和计分机制属于可玩性设计，不等同于历史统计。",Vector2i(780,610))
+	_dialog("指挥手册", "[font_size=25]在不确定中作出决定[/font_size]\n\n[color=#c6aa6d]01  阅读战场[/color]\n六角格代表固定公里数，每回合代表战役设定的小时数。地形、道路、河流和桥梁影响通行与战斗。金色圆环是计分目标；蓝、红算子代表不同阵营。\n\n[color=#c6aa6d]02  编排命令[/color]\n点击本方单位，选择机动、进攻或侦察，再点击目标格。固守、休整和预备直接作用于当前格。可选择谨慎、均衡或积极姿态。命令会持续执行，可在锁定前修改。同格堆叠单位可重复点击切换，也可从战斗序列选择。\n\n[color=#c6aa6d]03  同时结算 / WEGO[/color]\n双方分别下令并锁定，随后统一推进六个战术时段。敌军不会等待你的单位行动完毕。交战、退却、疲劳、弹药与燃料消耗均在结算中处理。\n\n[color=#c6aa6d]04  指挥与补给[/color]\n不要只看兵力。组织度、疲劳、燃料和弹药决定部队能否继续作战。总部距离、补给路线、补给吞吐量与时代能力会影响执行。使用补给图层查看本方枢纽，保护道路与后勤。\n\n[color=#c6aa6d]05  不完全情报[/color]\n只能查询本方详细状态及已观察到的敌军。问号是历史接触，未必代表敌军仍在原地。炮火、空援与战役侦察通过单位档案中的支援按钮指定目标。\n\n[color=#c6aa6d]06  操作与模式[/color]\n拖动地图平移，滚轮缩放；Esc 取消正在指定的命令。同机轮换时由交接遮罩保护双方信息。局域网由主机裁定状态。观战模式点击推进回合观看双方 AI。回放箭头读取历史快照。\n\n[color=#c6aa6d]07  键盘操作[/color]\n1–8：机动/进攻/固守/休整/侦察/预备/撤退/工程；C：锁定回合；Tab：下一单位；Shift+Backspace：清空本回合命令；WASD/方向键：平移地图；+ / −：缩放。\n\n[color=#c6aa6d]08  控制区与预估[/color]\n敌方战斗单位周围一格为控制区（「控制区」图层红晕），进入后本回合停止机动。进攻悬停会给出赔率与接触面提示；路径预估会标明控制区停步与堆叠已满。\n\n每个剧本含独立史料与设计说明；地图、兵力强度和计分机制属于可玩性设计，不等同于历史统计。",Vector2i(780,680))
 
 func _sources(scenario: Dictionary) -> void:
 	var text = "[font_size=23]%s[/font_size]\n\n" % scenario.get("title","")
@@ -874,6 +920,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		return
 	if event.keycode == KEY_C:
 		_commit()
+		return
+	if event.keycode == KEY_BACKSPACE and event.shift_pressed:
+		GameSession.clear_orders()
+		_refresh()
 		return
 	if event.keycode == KEY_TAB:
 		var units = []

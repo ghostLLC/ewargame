@@ -7193,6 +7193,22 @@
       "quality": 1.04
     },
     {
+      "id": "s0_09_299th_combat_engineer_battalion",
+      "name": "299th Combat Engineer Battalion",
+      "side": 0,
+      "q": 9,
+      "r": 8,
+      "type": "engineer",
+      "size": "battalion",
+      "formation": "299th Combat Engineer Battalion",
+      "strength": 53.796800000000005,
+      "organization": 87.0,
+      "fatigue": 0.0,
+      "fuel": 80.0,
+      "ammo": 88.0,
+      "quality": 1.08
+    },
+    {
       "id": "s1_20_panzer_group_west",
       "name": "Panzer Group West",
       "side": 1,

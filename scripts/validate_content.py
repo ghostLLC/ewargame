@@ -596,6 +596,7 @@ def roster_normandy_breakout() -> tuple[list[dict], list[dict]]:
             ("3rd Armored Division", "armor", "division", 7, 12),
             ("2nd Armored Cavalry Regiment", "recon", "regiment", 11, 4),
             ("VII Corps Artillery", "artillery", "brigade", 5, 14),
+            ("299th Combat Engineer Battalion", "engineer", "battalion", 9, 8),
         ],
         0,
     )
@@ -665,6 +666,7 @@ def roster_golan() -> tuple[list[dict], list[dict]]:
             ("Reserve Armor Column", "armor", "brigade", 21, 9),
             ("Northern Artillery", "artillery", "brigade", 19, 7),
             ("Recon Troop North", "recon", "battalion", 16, 12),
+            ("Combat Engineer Company", "engineer", "battalion", 20, 12),
         ],
         0,
     )
@@ -913,6 +915,7 @@ def build_gulf_west() -> dict:
         "第 VII 军与第 XVIII 空降军自西侧实施纵深勾拳，越过瓦迪巴廷并夺取共和卫队防御要点；伊军保持交通线并组织纵深防御。",
         "多国部队", "#587B8D", "伊拉克军", "#C5523A",
         tiles, coal + irq, objectives, depots, "gulf",
+        extra={"weather": "clear", "night_cycle": False, "weather_cycle": True, "weather_schedule": ["clear", "clear", "clear", "overcast", "clear", "storm", "clear", "clear", "overcast", "clear", "clear", "clear"]},
     )
 
 
@@ -936,6 +939,7 @@ def build_gulf_kuwait() -> dict:
         "联军自南与西突破伊军筑垒带，沿海岸与北向通道解放科威特城；伊军延缓突破并保持退路。地图含海岸、城市与筑垒带抽象，与沙漠左钩拳的开阔机动明显不同。",
         "联军", "#587B8D", "伊拉克军", "#C5523A",
         tiles, coal + irq, objectives, depots, "kuwait",
+        extra={"weather": "clear", "night_cycle": False, "weather_cycle": True, "weather_schedule": ["clear", "overcast", "clear", "clear", "night", "clear", "clear", "overcast", "clear", "clear", "clear", "clear"]},
     )
 
 

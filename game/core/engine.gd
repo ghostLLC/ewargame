@@ -795,16 +795,36 @@ static func preview_move(state: Dictionary, unit_id: String, target: Array) -> D
 	for i in range(1, path.size()):
 		cost += _move_cost(state, unit, path[i - 1], path[i])
 	var speed = maxf(0.2, _speed(state, unit, state.orders.get(unit_id, {"kind": "move"})))
-	var hexes_per_turn = speed
-	return {"ok": true, "path": path, "cost": cost, "turns": ceili(cost / maxf(0.5, hexes_per_turn)), "fuel_ok": (not unit.type in MOTOR) or unit.fuel >= cost * 3.0}
+	var turns = ceili(cost / maxf(0.5, speed))
+	var delay = int(state.orders.get(unit_id, {}).get("delay", unit.get("command_delay", 0)))
+	var zoc_hex = []
+	var stacked = false
+	if path.size() >= 2 and unit.type not in ["hq", "logistics", "air_defense"] and _enemy_zoc(state, path[1], unit.side):
+		zoc_hex = path[1]
+	if _stack(state, target, unit.side) >= 3:
+		stacked = true
+	return {"ok": true, "path": path, "cost": cost, "turns": turns, "effective_turns": delay + turns, "fuel_ok": (not unit.type in MOTOR) or unit.fuel >= cost * 3.0, "zoc_stop_hex": zoc_hex, "blocked_by_stack": stacked, "command_delay": delay}
 
 static func estimate_combat(state: Dictionary, attacker_id: String, defender_id: String) -> Dictionary:
 	var a = _find_unit(state, attacker_id)
 	var d = _find_unit(state, defender_id)
 	if a.is_empty() or d.is_empty() or a.side == d.side:
 		return {"ok": false}
-	var pa = _combat_power(state, a, d, true, 0)
-	var pb = _combat_power(state, d, a, false, 0)
+	var my_frontage = 0
+	var their_frontage = 0
+	var dpos = _pos(d)
+	var apos = _pos(a)
+	for unit in state.units:
+		if float(unit.strength) <= 0 or unit.type in ["hq", "logistics"]:
+			continue
+		if unit.side == a.side and _distance(_pos(unit), dpos) <= 1:
+			my_frontage += 1
+		if unit.side == d.side and _distance(_pos(unit), apos) <= 1:
+			their_frontage += 1
+	my_frontage = maxi(1, my_frontage)
+	their_frontage = maxi(1, their_frontage)
+	var pa = _combat_power(state, a, d, true, 0) / sqrt(float(my_frontage))
+	var pb = _combat_power(state, d, a, false, 0) / sqrt(float(their_frontage))
 	var total = maxf(0.1, pa + pb)
 	var my_loss = clampf(pb / total * 7.0, 0.15, 9.0)
 	var their_loss = clampf(pa / total * 7.0, 0.15, 9.0)
@@ -818,7 +838,17 @@ static func estimate_combat(state: Dictionary, attacker_id: String, defender_id:
 		label = "明显劣势"
 	elif ratio <= 0.72:
 		label = "略处下风"
-	return {"ok": true, "ratio": ratio, "label": label, "my_loss": my_loss, "their_loss": their_loss, "attacker_power": pa, "defender_power": pb}
+	var terrain = str(_tile(state, dpos).get("terrain", "plains"))
+	var reasons = []
+	if their_frontage > my_frontage:
+		reasons.append("敌方接触面更宽")
+	if my_frontage > 1:
+		reasons.append("我方多路 %d" % my_frontage)
+	if float(DEFENSE.get(terrain, 1.0)) >= 1.5:
+		reasons.append(terrain + "有利防守")
+	if str(d.get("strength_band", "")) == "weak":
+		reasons.append("敌军较弱")
+	return {"ok": true, "ratio": ratio, "label": label, "my_loss": my_loss, "their_loss": their_loss, "attacker_power": pa, "defender_power": pb, "my_frontage": my_frontage, "their_frontage": their_frontage, "terrain": terrain, "reasons": reasons}
 
 static func ai_orders(state: Dictionary, side: int) -> Array:
 	# Decisions use the exact public view; never read enemy authority data or orders.
@@ -836,30 +866,83 @@ static func ai_orders(state: Dictionary, side: int) -> Array:
 		var stance = "balanced"
 		var rest_org = 35 if difficulty == "easy" else 30 if difficulty == "hard" else 35
 		var rest_fatigue = 55 if difficulty == "easy" else 70 if difficulty == "hard" else 65
-		if unit.organization < rest_org or unit.fatigue > rest_fatigue or unit.ammo < 10:
+		var supply = float(unit.get("supply", 1.0))
+		var fuel = float(unit.get("fuel", 100.0))
+		if unit.organization < rest_org or unit.fatigue > rest_fatigue or unit.ammo < 10 or supply < 0.28 or (unit.type in MOTOR and fuel < 12.0):
 			kind = "rest"
-		else:
+			# Severely cut-off formations fall back toward own depot if possible.
+			if (supply < 0.2 or (unit.type in MOTOR and fuel < 8.0)) and unit.type not in ["hq", "logistics"]:
+				var home = {}
+				var home_d = 999
+				for depot in view.get("depots", []):
+					var dp = [int(depot.get("q", 0)), int(depot.get("r", 0))]
+					var dd = _distance(_pos(unit), dp)
+					if dd < home_d:
+						home_d = dd
+						home = depot
+				if not home.is_empty() and home_d > 1:
+					kind = "retreat"
+					target = [int(home.q), int(home.r)]
+		elif unit.type == "engineer":
+			# Try to bridge an adjacent or on-hex river.
+			var spots = [_pos(unit)]
+			for objective in view.objectives:
+				if _distance(_pos(unit), [objective.q, objective.r]) <= 2:
+					spots.append([objective.q, objective.r])
+			for npos in _neighbors(_pos(unit)):
+				spots.append(npos)
+			for spot in spots:
+				# Use authority map for river check (static terrain, fair).
+				var tile = _tile(state, spot)
+				if tile.get("river", false) and not tile.get("bridge", false) and _distance(_pos(unit), spot) <= 1:
+					kind = "engineer"
+					target = spot
+					break
+			if kind == "defend" and target.is_empty():
+				pass
+			elif kind != "engineer":
+				kind = "defend"
+				target = []
+				# fall through to normal objective logic below by resetting
+		if kind not in ["rest", "retreat", "engineer"]:
 			var best = {}
 			var best_score = INF
 			for objective in view.objectives:
 				var pos = [objective.q, objective.r]
-				var score = float(_distance(_pos(unit), pos)) + float(assigned.get(_key(pos), 0)) * 3.0 - float(objective.get("value", 1)) * 0.3
+				var score = float(_distance(_pos(unit), pos)) + float(assigned.get(_key(pos), 0)) * (6.0 if difficulty == "hard" else 3.0) - float(objective.get("value", 1)) * 0.45
 				if int(objective.get("owner", -1)) == side:
-					score += 4.0
+					score += 5.0
 				if score < best_score:
 					best_score = score
 					best = objective
 			var nearest = {}
 			var enemy_distance = 999
+			var weak = {}
+			var weak_d = 999
 			for enemy in view.units:
-				if enemy.side != side and _distance(_pos(unit), _pos(enemy)) < enemy_distance:
-					enemy_distance = _distance(_pos(unit), _pos(enemy))
+				if enemy.side == side:
+					continue
+				var ed = _distance(_pos(unit), _pos(enemy))
+				if ed < enemy_distance:
+					enemy_distance = ed
 					nearest = enemy
-			if not nearest.is_empty() and enemy_distance <= 1 and unit.type not in ["hq", "logistics", "artillery", "air_defense"]:
+				if str(enemy.get("strength_band", "")) == "weak" and ed < weak_d:
+					weak_d = ed
+					weak = enemy
+			if difficulty == "easy" and not nearest.is_empty() and enemy_distance <= 2 and unit.type not in ["hq", "logistics", "artillery"]:
+				kind = "defend"
+			elif not nearest.is_empty() and enemy_distance <= 1 and unit.type not in ["hq", "logistics", "artillery", "air_defense"]:
 				kind = "attack"
-				target = _pos(nearest)
+				if difficulty == "hard" and not weak.is_empty() and weak_d <= 2:
+					target = _pos(weak)
+				else:
+					target = _pos(nearest)
 				var aggro = 60 if difficulty == "hard" else 80 if difficulty == "easy" else 70
 				stance = "aggressive" if unit.organization > aggro else "balanced"
+			elif difficulty == "hard" and not weak.is_empty() and weak_d <= 3 and unit.type in ["armor", "mechanized", "infantry", "motorized"]:
+				kind = "attack"
+				target = _pos(weak)
+				stance = "aggressive"
 			elif not best.is_empty():
 				target = [best.q, best.r]
 				assigned[_key(target)] = int(assigned.get(_key(target), 0)) + 1

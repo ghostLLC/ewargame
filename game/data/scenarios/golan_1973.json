@@ -4889,6 +4889,22 @@
       "quality": 1.0
     },
     {
+      "id": "s0_08_combat_engineer_company",
+      "name": "Combat Engineer Company",
+      "side": 0,
+      "q": 20,
+      "r": 12,
+      "type": "engineer",
+      "size": "battalion",
+      "formation": "Combat Engineer Company",
+      "strength": 47.796800000000005,
+      "organization": 83.4,
+      "fatigue": 0.0,
+      "fuel": 80.0,
+      "ammo": 88.0,
+      "quality": 1.04
+    },
+    {
       "id": "s1_20_syrian_5th_infantry_division",
       "name": "Syrian 5th Infantry Division",
       "side": 1,

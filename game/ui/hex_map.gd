@@ -133,6 +133,21 @@ func _draw() -> void:
 			var at = _center(int(depot.get("q",0)),int(depot.get("r",0)))
 			draw_arc(at,rad*1.7,0,TAU,40,Color(0.22,0.48,0.41,0.45),2.0,true)
 			_label(at+Vector2(0,-rad),"补给枢纽",Color("2b6b57"),12)
+	if overlay == "control" or overlay == "zoc":
+		var side = int(observation.get("side", 0))
+		for unit in observation.get("units", []):
+			if int(unit.get("side", -1)) == side:
+				continue
+			if str(unit.get("type", "")) in ["hq", "logistics", "artillery"]:
+				continue
+			var sq = int(unit.get("q", 0))
+			var sr = int(unit.get("r", 0))
+			for dq_dr in [[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]]:
+				var nq = sq + dq_dr[0]
+				var nr = sr + dq_dr[1]
+				var nc = _center(nq, nr)
+				draw_colored_polygon(_hex(nc, rad - 0.8), Color(0.7, 0.22, 0.18, 0.12))
+				draw_polyline(_hex(nc, rad - 0.8), Color(0.7, 0.22, 0.18, 0.35), 1.0, true)
 	_draw_orders(rad)
 	var stacks: Dictionary = {}
 	for unit in observation.get("units", []):
