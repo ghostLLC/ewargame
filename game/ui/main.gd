@@ -32,6 +32,8 @@ var smoke_done: bool = false
 var last_turn: int = -1
 var lan_window: AcceptDialog
 var room_list: VBoxContainer
+var hovered_hex: Array = []
+var preview_path: Array = []
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -321,6 +323,7 @@ func _build_game() -> void:
 	canvas.update_view(view,selected_id)
 	canvas.unit_selected.connect(_select_unit)
 	canvas.hex_selected.connect(_target_hex)
+	canvas.hex_hovered.connect(_on_hex_hovered)
 	var legend_bar = HBoxContainer.new()
 	map_column.add_child(legend_bar)
 	legend_bar.add_child(_label("蓝 / 红：阵营    金环：战略目标    虚线：本方命令    ?：历史接触",11,MUTED))
@@ -381,10 +384,28 @@ func _build_game() -> void:
 	commit.disabled = bool(view.get("replay_active",false))
 	commit_box.add_child(commit)
 	var ready: Array = view.get("ready",[false,false])
+	var own_units = []
+	for unit in view.get("units", []):
+		if int(unit.get("side",-1)) == int(view.get("side",0)) and float(unit.get("strength",0)) > 0:
+			own_units.append(unit)
+	var ordered = view.get("orders", {})
+	var n_ordered = 0
+	var missing = []
+	for unit in own_units:
+		var uid = str(unit.get("id",""))
+		if ordered is Dictionary and ordered.has(uid):
+			n_ordered += 1
+		else:
+			missing.append(str(unit.get("name", uid)))
 	if GameSession.mode == "observer":
 		commit_box.add_child(_label("双方 AI 持续推演 · 可随时暂停",10,MUTED))
 	else:
-		commit_box.add_child(_label("双方命令同时结算 · 六个战术时段" if not (true in ready) else "命令已锁定 · 等待另一方",10,MUTED))
+		var base = "双方命令同时结算 · 六个战术时段" if not (true in ready) else "命令已锁定 · 等待另一方"
+		commit_box.add_child(_label(base,10,MUTED))
+		var summary = "已下令 %d / %d" % [n_ordered, own_units.size()]
+		if not missing.is_empty() and not (true in ready):
+			summary += " · 未下令：" + ("、".join(missing.slice(0, 4))) + ("…" if missing.size() > 4 else "")
+		commit_box.add_child(_label(summary,10,MUTED))
 	var upcoming: Array = view.get("upcoming_reinforcements", [])
 	if upcoming is Array and not upcoming.is_empty():
 		var rf = upcoming[0]
@@ -417,8 +438,15 @@ func _inspect_unit() -> void:
 	inspector.add_child(_label("%s  ·  坐标 %s, %s" % [TYPES.get(str(unit.get("type","")),"未识别单位"),unit.get("q","?"),unit.get("r","?")],12,MUTED))
 	if not own:
 		inspector.add_child(_label("敌军情报 · 仅展示已侦察信息",12,GOLD))
-		var text = _label("敌军实力与后勤状态不公开。\n情报可能随视野丢失而过时。",12,MUTED)
-		inspector.add_child(text)
+		var band = str(unit.get("strength_band", ""))
+		var band_cn = {"strong":"较强", "medium":"中等", "weak":"较弱"}.get(band, "不明")
+		inspector.add_child(_label("兵力判断  %s" % band_cn,14))
+		inspector.add_child(_label("%s · %s" % [TYPES.get(str(unit.get("type","")),"未识别"), str(unit.get("size",""))],12,MUTED))
+		if unit.has("last_seen"):
+			inspector.add_child(_label("最后目击  第 %s 回合" % str(unit.get("last_seen")),11,MUTED))
+		var etext = _label("敌军后勤与精确兵力不公开。\n问号接触可能已经过时。",12,MUTED)
+		etext.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		inspector.add_child(etext)
 		return
 	inspector.add_child(_label("兵力  %s" % unit.get("strength","—"),17))
 	for entry in [["organization","组织"],["fatigue","疲劳"],["fuel","燃料"],["ammo","弹药"]]:
@@ -438,6 +466,34 @@ func _inspect_unit() -> void:
 	inspector.add_child(_label("当前命令  " + str(ORDERS.get(str(current.get("kind","defend")),"固守")),12,GOLD))
 	if unit.has("supply"):
 		inspector.add_child(_label("补给状态  %s" % unit.get("supply"),12,MUTED))
+	inspector.add_child(_label("状态  %s · 筑城 %.1f · 延迟 %s" % [str(unit.get("status","ready")), float(unit.get("entrenchment",0.0)), str(unit.get("command_delay",0))],11,MUTED))
+	if str(current.get("kind","")) == "attack" and current.get("target",[]) is Array and not current.get("target",[]).is_empty() and GameSession.has_method("estimate_combat"):
+		var tid = ""
+		var tx = int(current["target"][0])
+		var ty = int(current["target"][1])
+		for other in GameSession.view.get("units", []):
+			if int(other.get("q",-1))==tx and int(other.get("r",-1))==ty and int(other.get("side",-1))!=int(GameSession.view.get("side",0)):
+				tid = str(other.get("id",""))
+				break
+		if not tid.is_empty():
+			var est = GameSession.estimate_combat(selected_id, tid)
+			if est is Dictionary and est.get("ok", false):
+				inspector.add_child(_label("交战预估  %s  约 %.1f:1" % [str(est.get("label","均势")), float(est.get("ratio",1.0))],12,GOLD))
+				inspector.add_child(_label("预计本方约 −%.1f · 敌方约 −%.1f" % [float(est.get("my_loss",0)), float(est.get("their_loss",0))],11,MUTED))
+	if pending_order in ["move","attack","recon","retreat"] and not hovered_hex.is_empty() and GameSession.has_method("preview_move"):
+		var pv = GameSession.preview_move(selected_id, hovered_hex)
+		if pv is Dictionary and pv.get("ok", false):
+			inspector.add_child(_label("路径预估  %s 格 · 约 %s 回合%s" % [int(pv.get("path",[]).size())-1, pv.get("turns"), "" if pv.get("fuel_ok", true) else " · 燃料可能不足"],11,GOLD))
+	var stack = []
+	for other in GameSession.view.get("units", []):
+		if int(other.get("q",-1))==int(unit.get("q",-1)) and int(other.get("r",-1))==int(unit.get("r",-1)) and float(other.get("strength",0))>0:
+			stack.append(other)
+	if stack.size() > 1:
+		inspector.add_child(HSeparator.new())
+		inspector.add_child(_label("同格部队 %d" % stack.size(),11,GOLD))
+		for other in stack:
+			var oid = str(other.get("id",""))
+			inspector.add_child(_button("%s %s" % ["›" if oid==selected_id else "·", str(other.get("name",oid))],func(): _select_unit(oid)))
 	var support = HBoxContainer.new()
 	inspector.add_child(support)
 	for entry in [["artillery","炮火"],["air","空援"],["recon","侦察"]]:
@@ -498,6 +554,20 @@ func _choose_order(kind: String) -> void:
 	else:
 		pending_order = kind
 		_update_hint()
+
+
+func _on_hex_hovered(q: int, r: int) -> void:
+	hovered_hex = [] if q < -50 else [q, r]
+	if pending_order in ["move","attack","recon","retreat"] and not selected_id.is_empty() and GameSession.has_method("preview_move") and not hovered_hex.is_empty():
+		var pv = GameSession.preview_move(selected_id, hovered_hex)
+		preview_path = pv.get("path", []) if pv is Dictionary and pv.get("ok", false) else []
+		if is_instance_valid(canvas):
+			canvas.preview_path = preview_path
+			canvas.queue_redraw()
+	elif is_instance_valid(canvas) and not preview_path.is_empty():
+		preview_path = []
+		canvas.preview_path = []
+		canvas.queue_redraw()
 
 func _target_hex(q: int, r: int) -> void:
 	if pending_order.is_empty(): return
@@ -702,10 +772,42 @@ func _handoff() -> void:
 	list.add_child(_button("我已接手 · 打开战场   →",func(): selected_id = ""; GameSession.accept_handoff()))
 
 func _unhandled_key_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+	if not (event is InputEventKey) or not event.pressed:
+		return
+	if event.keycode == KEY_ESCAPE:
 		pending_order = ""
+		preview_path = []
+		if is_instance_valid(canvas):
+			if canvas.has_method("update_view"):
+				var v = GameSession.view.duplicate(true)
+				v["preview_path"] = []
+				canvas.update_view(v, selected_id)
 		_update_hint()
 		_notice("目标选择已取消。")
+		return
+	if GameSession.view.is_empty() or GameSession.mode == "observer" or bool(GameSession.view.get("replay_active", false)):
+		if is_instance_valid(canvas) and canvas.has_method("handle_key"):
+			canvas.handle_key(event)
+		return
+	var kinds = ["move","attack","defend","rest","recon","reserve","retreat","engineer"]
+	var idx = event.keycode - KEY_1
+	if idx >= 0 and idx < kinds.size() and not selected_id.is_empty():
+		_choose_order(kinds[idx])
+		return
+	if event.keycode == KEY_C:
+		_commit()
+		return
+	if event.keycode == KEY_TAB:
+		var units = []
+		for unit in GameSession.view.get("units", []):
+			if int(unit.get("side",-1)) == int(GameSession.view.get("side",0)):
+				units.append(str(unit.get("id","")))
+		if not units.is_empty():
+			var cur = units.find(selected_id)
+			_select_unit(units[(cur + 1) % units.size()])
+		return
+	if is_instance_valid(canvas) and canvas.has_method("handle_key"):
+		canvas.handle_key(event)
 
 func _smoke() -> void:
 	var args = OS.get_cmdline_user_args()

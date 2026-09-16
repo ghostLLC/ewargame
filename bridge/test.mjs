@@ -5,7 +5,7 @@ import { once } from 'node:events';
 import { TOOLS, callTool } from './server.mjs';
 
 test('tool schemas expose orders and turn gates, no hidden-state tools', () => {
-  assert.equal(TOOLS.length, 6);
+  assert.equal(TOOLS.length, 7);
   assert.ok(TOOLS.find(t => t.name === 'game_orders').inputSchema.required.includes('turn'));
   assert.ok(!TOOLS.some(t => /debug|cheat|save|seed/.test(t.name)));
 });
@@ -34,6 +34,6 @@ test('stdio negotiation, tool discovery, invalid JSON and unknown methods', asyn
   const messages = output.trim().split('\n').map(line => JSON.parse(line));
   assert.equal(messages.find(m => m.id === null).error.code, -32700);
   assert.equal(messages.find(m => m.id === 1).result.protocolVersion, '2025-11-25');
-  assert.equal(messages.find(m => m.id === 2).result.tools.length, 6);
+  assert.equal(messages.find(m => m.id === 2).result.tools.length, 7);
   assert.equal(messages.find(m => m.id === 3).error.code, -32601);
 });

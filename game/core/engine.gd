@@ -113,7 +113,7 @@ static func observe(state: Dictionary, side: int) -> Dictionary:
 	if side not in [0, 1]:
 		return {}
 	var scenario: Dictionary = state.scenario
-	var result = {"scenario_id": scenario.get("id", ""), "title": scenario.get("title", ""), "era": scenario.get("era", "ww2"), "turn": int(state.turn), "max_turns": int(scenario.get("max_turns", 20)), "side": side, "phase": state.phase, "map": {"width": scenario.get("width", 0), "height": scenario.get("height", 0), "tiles": scenario.get("tiles", []).duplicate(true)}, "units": [], "sides": scenario.get("sides", []).duplicate(true), "objectives": state.objectives.duplicate(true), "depots": [], "weather": state.weather, "scores": state.scores.duplicate(), "ready": state.ready.duplicate(), "logs": [], "contacts": [], "orders": {}, "hex_km": scenario.get("hex_km", 5), "turn_hours": scenario.get("turn_hours", 6), "support": state.get("support", {}).get(str(side), {}).duplicate(true), "result": state.get("result", {}).duplicate(true), "date": scenario.get("date", ""), "description": scenario.get("description", ""), "design_notes": scenario.get("design_notes", ""), "sources": scenario.get("sources", []).duplicate(true), "weather_cycle": scenario.get("weather_cycle", false), "upcoming_reinforcements": []}
+	var result = {"scenario_id": scenario.get("id", ""), "title": scenario.get("title", ""), "era": scenario.get("era", "ww2"), "turn": int(state.turn), "max_turns": int(scenario.get("max_turns", 20)), "side": side, "phase": state.phase, "map": {"width": scenario.get("width", 0), "height": scenario.get("height", 0), "tiles": scenario.get("tiles", []).duplicate(true)}, "units": [], "sides": scenario.get("sides", []).duplicate(true), "objectives": state.objectives.duplicate(true), "depots": [], "weather": state.weather, "scores": state.scores.duplicate(), "ready": state.ready.duplicate(), "logs": [], "contacts": [], "orders": {}, "hex_km": scenario.get("hex_km", 5), "turn_hours": scenario.get("turn_hours", 6), "support": state.get("support", {}).get(str(side), {}).duplicate(true), "result": state.get("result", {}).duplicate(true), "date": scenario.get("date", ""), "description": scenario.get("description", ""), "design_notes": scenario.get("design_notes", ""), "sources": scenario.get("sources", []).duplicate(true), "weather_cycle": scenario.get("weather_cycle", false), "upcoming_reinforcements": [], "control": state.get("control", {}).duplicate()}
 	var visible = _visible(state, side)
 	for unit in state.units:
 		if float(unit.strength) <= 0:
@@ -279,6 +279,10 @@ static func _substep(state: Dictionary, rng: RandomNumberGenerator, step: int) -
 		counts[key] = int(counts.get(key, 0)) + 1
 		var old_key = _key(_pos(unit)) + ":" + str(unit.side)
 		counts[old_key] = int(counts.get(old_key, 1)) - 1
+		# Entering an enemy zone of control ends movement for combat formations.
+		if unit.type not in ["hq", "logistics", "air_defense"] and _enemy_zoc(state, next, unit.side):
+			intents.erase(unit.id)
+			unit.movement_remaining = 0.0
 	for unit in movers:
 		if not accepted.has(unit.id):
 			continue
@@ -293,6 +297,37 @@ static func _substep(state: Dictionary, rng: RandomNumberGenerator, step: int) -
 		unit.moved = true
 		unit.status = "moving"
 		state.control[_key(next)] = unit.side
+	# Successful assault can seize the defender hex if it is now empty.
+	for unit in active:
+		if not intents.has(unit.id) and not unit.fought:
+			continue
+		if float(unit.strength) <= 0:
+			continue
+		var order: Dictionary = state.orders.get(unit.id, {})
+		if str(order.get("kind", "")) != "attack" or order.get("delay", 0) > 0:
+			continue
+		var target: Array = order.get("target", [])
+		if target.size() != 2:
+			continue
+		if _enemy_at(state, target, unit.side) or _stack(state, target, unit.side) >= 3:
+			continue
+		if _distance(_pos(unit), target) == 1 and unit.organization >= 20 and not unit.retreated:
+			# only advance if adjacent after this turn's fights
+			var can_step = true
+			for other in state.units:
+				if other.side != unit.side and other.strength > 0 and _pos(other) == target:
+					can_step = false
+					break
+			if can_step and float(unit.movement_remaining) >= 0.1:
+				var cost = _move_cost(state, unit, _pos(unit), target)
+				if unit.movement_remaining >= cost and not _enemy_at(state, target, unit.side):
+					unit.q = int(target[0])
+					unit.r = int(target[1])
+					unit.movement_remaining = maxf(0.0, unit.movement_remaining - cost)
+					unit.entrenchment = 0.0
+					unit.moved = true
+					state.control[_key(target)] = unit.side
+					_event(state, unit.side, "%s：突破占领目标格" % unit.name)
 	# Artillery/air is a once-per-turn allocation, requiring a current sighting.
 	if step == 2:
 		_apply_support(state, rng)
@@ -355,11 +390,17 @@ static func _finish_units(state: Dictionary) -> void:
 			unit.fatigue = maxf(0, unit.fatigue - (18.0 if resting else 8.0) * (0.3 + 0.7 * unit.supply))
 			if kind in ["defend", "reserve", "engineer"]:
 				unit.entrenchment = minf(3.0, unit.entrenchment + (0.65 if unit.type == "engineer" else 0.35))
-		if kind == "engineer" and unit.type == "engineer" and order.get("target", []) == _pos(unit) and not unit.fought:
-			var tile = _tile(state, _pos(unit))
-			if tile.get("river", false) and not tile.get("bridge", false) and unit.supply >= 0.3:
-				tile.bridge = true
-				_event(state, unit.side, "%s：架设渡河桥梁" % unit.name)
+		if kind == "engineer" and unit.type == "engineer" and not unit.fought and unit.supply >= 0.3:
+			var spots = [_pos(unit)]
+			var tpos = order.get("target", [])
+			if tpos is Array and tpos.size() == 2 and _distance(_pos(unit), tpos) <= 1:
+				spots.append(tpos)
+			for spot in spots:
+				var tile = _tile(state, spot)
+				if tile.get("river", false) and not tile.get("bridge", false):
+					tile.bridge = true
+					_event(state, unit.side, "%s：在 %s,%s 架设渡河桥梁" % [unit.name, spot[0], spot[1]])
+					break
 		unit.erase("moved")
 		unit.erase("fought")
 		unit.erase("retreated")
@@ -732,6 +773,43 @@ static func _score(state: Dictionary) -> void:
 		state.result = {"winner": winner, "reason": reason, "scores": state.scores.duplicate()}
 		_event(state, -1, "战役结束：%s；积分 %d : %d" % [reason, state.scores[0], state.scores[1]])
 
+
+static func preview_move(state: Dictionary, unit_id: String, target: Array) -> Dictionary:
+	var unit = _find_unit(state, unit_id)
+	if unit.is_empty() or target.size() != 2 or _tile(state, target).is_empty():
+		return {"ok": false, "error": "invalid"}
+	var path = _path(state, unit, target)
+	if path.is_empty():
+		return {"ok": false, "error": "no_path", "path": []}
+	var cost = 0.0
+	for i in range(1, path.size()):
+		cost += _move_cost(state, unit, path[i - 1], path[i])
+	var speed = maxf(0.2, _speed(state, unit, state.orders.get(unit_id, {"kind": "move"})))
+	var hexes_per_turn = speed
+	return {"ok": true, "path": path, "cost": cost, "turns": ceili(cost / maxf(0.5, hexes_per_turn)), "fuel_ok": (not unit.type in MOTOR) or unit.fuel >= cost * 3.0}
+
+static func estimate_combat(state: Dictionary, attacker_id: String, defender_id: String) -> Dictionary:
+	var a = _find_unit(state, attacker_id)
+	var d = _find_unit(state, defender_id)
+	if a.is_empty() or d.is_empty() or a.side == d.side:
+		return {"ok": false}
+	var pa = _combat_power(state, a, d, true, 0)
+	var pb = _combat_power(state, d, a, false, 0)
+	var total = maxf(0.1, pa + pb)
+	var my_loss = clampf(pb / total * 7.0, 0.15, 9.0)
+	var their_loss = clampf(pa / total * 7.0, 0.15, 9.0)
+	var ratio = pa / maxf(0.1, pb)
+	var label = "均势"
+	if ratio >= 2.2:
+		label = "优势明显"
+	elif ratio >= 1.4:
+		label = "略占优势"
+	elif ratio <= 0.45:
+		label = "明显劣势"
+	elif ratio <= 0.72:
+		label = "略处下风"
+	return {"ok": true, "ratio": ratio, "label": label, "my_loss": my_loss, "their_loss": their_loss, "attacker_power": pa, "defender_power": pb}
+
 static func ai_orders(state: Dictionary, side: int) -> Array:
 	# Decisions use the exact public view; never read enemy authority data or orders.
 	var difficulty = str(state.get("ai_difficulty", "normal"))
@@ -786,6 +864,32 @@ static func ai_orders(state: Dictionary, side: int) -> Array:
 				kind = "attack"
 				target = _pos(nearest)
 		orders.append({"unit_id": unit.id, "kind": kind, "target": target, "stance": stance})
+	# One operational support toward the densest visible enemy cluster.
+	var cluster = []
+	var best_n = 0
+	for enemy in view.units:
+		if int(enemy.get("side", -1)) == side:
+			continue
+		var epos = [int(enemy.get("q", 0)), int(enemy.get("r", 0))]
+		var n = 0
+		for other in view.units:
+			if int(other.get("side", -1)) != side and _distance(epos, [int(other.get("q", 0)), int(other.get("r", 0))]) <= 1:
+				n += 1
+		if n > best_n:
+			best_n = n
+			cluster = epos
+	if best_n > 0 and not state.ready[side]:
+		for kind in ["artillery", "recon", "air"]:
+			if _support_available(state, side, kind):
+				if kind == "artillery":
+					var in_range = false
+					for unit in state.units:
+						if unit.side == side and unit.type == "artillery" and unit.strength > 0 and unit.ammo >= 20 and _distance(_pos(unit), cluster) <= 4:
+							in_range = true
+					if not in_range:
+						continue
+				submit_support(state, side, kind, cluster)
+				break
 	return orders
 
 static func _rules(state: Dictionary) -> Dictionary:

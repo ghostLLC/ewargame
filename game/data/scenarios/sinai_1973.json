@@ -5973,12 +5973,12 @@
       "type": "hq",
       "size": "army",
       "formation": "Southern Command",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 41.0,
+      "organization": 90.0,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.9600000000000001
     },
     {
       "id": "s0_02_162nd_armored_division",
@@ -5989,8 +5989,8 @@
       "type": "armor",
       "size": "division",
       "formation": "162nd Armored Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 104.19200000000001,
+      "organization": 81.6,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
@@ -6005,12 +6005,12 @@
       "type": "armor",
       "size": "division",
       "formation": "143rd Armored Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 110.19200000000001,
+      "organization": 85.2,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.04
     },
     {
       "id": "s0_04_252nd_armored_division",
@@ -6021,12 +6021,12 @@
       "type": "armor",
       "size": "division",
       "formation": "252nd Armored Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 105.19200000000001,
+      "organization": 82.2,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.08
     },
     {
       "id": "s0_05_600th_armored_brigade",
@@ -6037,12 +6037,12 @@
       "type": "armor",
       "size": "brigade",
       "formation": "600th Armored Brigade",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 99.60000000000001,
+      "organization": 85.8,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.92
     },
     {
       "id": "s0_06_205th_armored_brigade",
@@ -6053,12 +6053,12 @@
       "type": "armor",
       "size": "brigade",
       "formation": "205th Armored Brigade",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 94.60000000000001,
+      "organization": 82.8,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.9600000000000001
     },
     {
       "id": "s0_07_14th_armored_brigade",
@@ -6069,8 +6069,8 @@
       "type": "armor",
       "size": "brigade",
       "formation": "14th Armored Brigade",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 100.60000000000001,
+      "organization": 86.4,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
@@ -6085,12 +6085,12 @@
       "type": "recon",
       "size": "battalion",
       "formation": "421st Reconnaissance Battalion",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 50.6672,
+      "organization": 83.4,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.04
     },
     {
       "id": "s0_09_artillery_group_sinai",
@@ -6101,12 +6101,12 @@
       "type": "artillery",
       "size": "brigade",
       "formation": "Artillery Group Sinai",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 69.39999999999999,
+      "organization": 87.0,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.08
     },
     {
       "id": "s1_20_second_field_army",
@@ -6117,12 +6117,12 @@
       "type": "hq",
       "size": "army",
       "formation": "Second Field Army",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 46.0,
+      "organization": 90.0,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.9600000000000001
     },
     {
       "id": "s1_21_16th_infantry_division",
@@ -6133,8 +6133,8 @@
       "type": "infantry",
       "size": "division",
       "formation": "16th Infantry Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 100.888,
+      "organization": 85.8,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
@@ -6149,12 +6149,12 @@
       "type": "infantry",
       "size": "division",
       "formation": "18th Infantry Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 95.888,
+      "organization": 82.8,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.04
     },
     {
       "id": "s1_23_2nd_infantry_division",
@@ -6165,12 +6165,12 @@
       "type": "infantry",
       "size": "division",
       "formation": "2nd Infantry Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 101.888,
+      "organization": 86.4,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.08
     },
     {
       "id": "s1_24_4th_armored_division",
@@ -6181,12 +6181,12 @@
       "type": "armor",
       "size": "division",
       "formation": "4th Armored Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 107.19200000000001,
+      "organization": 83.4,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.92
     },
     {
       "id": "s1_25_21st_armored_division",
@@ -6197,12 +6197,12 @@
       "type": "armor",
       "size": "division",
       "formation": "21st Armored Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 113.19200000000001,
+      "organization": 87.0,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.9600000000000001
     },
     {
       "id": "s1_26_130th_amphibious_brigade",
@@ -6213,8 +6213,8 @@
       "type": "mechanized",
       "size": "brigade",
       "formation": "130th Amphibious Brigade",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 93.84,
+      "organization": 84.0,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
@@ -6229,12 +6229,12 @@
       "type": "armor",
       "size": "brigade",
       "formation": "25th Independent Armored Brigade",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 91.60000000000001,
+      "organization": 81.0,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.04
     },
     {
       "id": "s1_28_sa_iqa_group_127",
@@ -6245,12 +6245,12 @@
       "type": "infantry",
       "size": "regiment",
       "formation": "Sa'iqa Group 127",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 81.408,
+      "organization": 84.6,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.08
     },
     {
       "id": "s1_29_army_artillery_west",
@@ -6261,12 +6261,12 @@
       "type": "artillery",
       "size": "brigade",
       "formation": "Army Artillery West",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 60.39999999999999,
+      "organization": 81.6,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.92
     },
     {
       "id": "s1_30_air_defense_command",
@@ -6277,12 +6277,12 @@
       "type": "air_defense",
       "size": "brigade",
       "formation": "Air Defense Command",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 71.0,
+      "organization": 85.2,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.9600000000000001
     }
   ],
   "objectives": [
@@ -6346,7 +6346,7 @@
         "fatigue": 0.0,
         "fuel": 95.0,
         "ammo": 88.0,
-        "quality": 1.0
+        "quality": 0.92
       }
     }
   ],

@@ -4785,12 +4785,12 @@
       "type": "hq",
       "size": "army",
       "formation": "Northern Command",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 41.0,
+      "organization": 90.0,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.9600000000000001
     },
     {
       "id": "s0_02_7th_armored_brigade",
@@ -4801,8 +4801,8 @@
       "type": "armor",
       "size": "brigade",
       "formation": "7th Armored Brigade",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 92.60000000000001,
+      "organization": 81.6,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
@@ -4817,12 +4817,12 @@
       "type": "armor",
       "size": "brigade",
       "formation": "188th Barak Armored Brigade",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 98.60000000000001,
+      "organization": 85.2,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.04
     },
     {
       "id": "s0_04_golani_infantry_brigade",
@@ -4833,12 +4833,12 @@
       "type": "infantry",
       "size": "brigade",
       "formation": "Golani Infantry Brigade",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 84.39999999999999,
+      "organization": 82.2,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.08
     },
     {
       "id": "s0_05_reserve_armor_column",
@@ -4849,12 +4849,12 @@
       "type": "armor",
       "size": "brigade",
       "formation": "Reserve Armor Column",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 99.60000000000001,
+      "organization": 85.8,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.92
     },
     {
       "id": "s0_06_northern_artillery",
@@ -4865,12 +4865,12 @@
       "type": "artillery",
       "size": "brigade",
       "formation": "Northern Artillery",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 62.39999999999999,
+      "organization": 82.8,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.9600000000000001
     },
     {
       "id": "s0_07_recon_troop_north",
@@ -4881,8 +4881,8 @@
       "type": "recon",
       "size": "battalion",
       "formation": "Recon Troop North",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 55.6672,
+      "organization": 86.4,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
@@ -4897,12 +4897,12 @@
       "type": "infantry",
       "size": "division",
       "formation": "Syrian 5th Infantry Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 94.888,
+      "organization": 82.2,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.9600000000000001
     },
     {
       "id": "s1_21_syrian_9th_infantry_division",
@@ -4913,8 +4913,8 @@
       "type": "infantry",
       "size": "division",
       "formation": "Syrian 9th Infantry Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 100.888,
+      "organization": 85.8,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
@@ -4929,12 +4929,12 @@
       "type": "armor",
       "size": "division",
       "formation": "Syrian 1st Armored Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 106.19200000000001,
+      "organization": 82.8,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.04
     },
     {
       "id": "s1_23_syrian_3rd_armored_division",
@@ -4945,12 +4945,12 @@
       "type": "armor",
       "size": "division",
       "formation": "Syrian 3rd Armored Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 112.19200000000001,
+      "organization": 86.4,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.08
     },
     {
       "id": "s1_24_syrian_47th_independent_armored_brigade",
@@ -4961,12 +4961,12 @@
       "type": "armor",
       "size": "brigade",
       "formation": "Syrian 47th Independent Armored Brigade",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 95.60000000000001,
+      "organization": 83.4,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.92
     },
     {
       "id": "s1_25_syrian_81st_armored_brigade",
@@ -4977,12 +4977,12 @@
       "type": "armor",
       "size": "brigade",
       "formation": "Syrian 81st Armored Brigade",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 101.60000000000001,
+      "organization": 87.0,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.9600000000000001
     },
     {
       "id": "s1_26_syrian_121st_mechanized_brigade",
@@ -4993,8 +4993,8 @@
       "type": "mechanized",
       "size": "brigade",
       "formation": "Syrian 121st Mechanized Brigade",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 93.84,
+      "organization": 84.0,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
@@ -5009,12 +5009,12 @@
       "type": "air_defense",
       "size": "brigade",
       "formation": "Syrian Air Defense Command",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 64.0,
+      "organization": 81.0,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.04
     }
   ],
   "objectives": [
@@ -5078,7 +5078,7 @@
         "fatigue": 0.0,
         "fuel": 95.0,
         "ammo": 88.0,
-        "quality": 1.0
+        "quality": 0.92
       }
     }
   ],

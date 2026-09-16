@@ -6633,12 +6633,12 @@
       "type": "hq",
       "size": "corps",
       "formation": "Marine Forces",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 41.0,
+      "organization": 90.0,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.9600000000000001
     },
     {
       "id": "s0_02_1st_marine_division",
@@ -6649,8 +6649,8 @@
       "type": "mechanized",
       "size": "division",
       "formation": "1st Marine Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 101.1008,
+      "organization": 81.6,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
@@ -6665,12 +6665,12 @@
       "type": "mechanized",
       "size": "division",
       "formation": "2nd Marine Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 107.1008,
+      "organization": 85.2,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.04
     },
     {
       "id": "s0_04_british_1st_armoured_division",
@@ -6681,12 +6681,12 @@
       "type": "armor",
       "size": "division",
       "formation": "British 1st Armoured Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 105.19200000000001,
+      "organization": 82.2,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.08
     },
     {
       "id": "s0_05_6th_french_light_armored_division",
@@ -6697,12 +6697,12 @@
       "type": "armor",
       "size": "brigade",
       "formation": "6th French Light Armored Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 99.60000000000001,
+      "organization": 85.8,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.92
     },
     {
       "id": "s0_06_tiger_brigade_2nd_armored_division",
@@ -6713,12 +6713,12 @@
       "type": "armor",
       "size": "brigade",
       "formation": "Tiger Brigade, 2nd Armored Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 94.60000000000001,
+      "organization": 82.8,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.9600000000000001
     },
     {
       "id": "s0_07_joint_recon_squadron",
@@ -6729,8 +6729,8 @@
       "type": "recon",
       "size": "regiment",
       "formation": "Joint Recon Squadron",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 64.9408,
+      "organization": 86.4,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
@@ -6745,12 +6745,12 @@
       "type": "artillery",
       "size": "brigade",
       "formation": "Naval Gunfire / Corps Artillery",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 63.39999999999999,
+      "organization": 83.4,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.04
     },
     {
       "id": "s0_09_engineer_breach_group",
@@ -6761,12 +6761,12 @@
       "type": "engineer",
       "size": "brigade",
       "formation": "Engineer Breach Group",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 67.56,
+      "organization": 87.0,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.08
     },
     {
       "id": "s1_20_iraqi_iii_corps_kuwait",
@@ -6777,12 +6777,12 @@
       "type": "hq",
       "size": "corps",
       "formation": "Iraqi III Corps Kuwait",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 46.0,
+      "organization": 90.0,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.9600000000000001
     },
     {
       "id": "s1_21_1st_mechanized_division",
@@ -6793,8 +6793,8 @@
       "type": "mechanized",
       "size": "division",
       "formation": "1st Mechanized Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 108.1008,
+      "organization": 85.8,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
@@ -6809,12 +6809,12 @@
       "type": "armor",
       "size": "division",
       "formation": "3rd Armored Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 106.19200000000001,
+      "organization": 82.8,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.04
     },
     {
       "id": "s1_23_5th_mechanized_division",
@@ -6825,12 +6825,12 @@
       "type": "mechanized",
       "size": "division",
       "formation": "5th Mechanized Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 109.1008,
+      "organization": 86.4,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.08
     },
     {
       "id": "s1_24_14th_infantry_division",
@@ -6841,12 +6841,12 @@
       "type": "infantry",
       "size": "division",
       "formation": "14th Infantry Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 96.888,
+      "organization": 83.4,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.92
     },
     {
       "id": "s1_25_7th_infantry_division",
@@ -6857,12 +6857,12 @@
       "type": "infantry",
       "size": "division",
       "formation": "7th Infantry Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 102.888,
+      "organization": 87.0,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.9600000000000001
     },
     {
       "id": "s1_26_fatah_brigade_guard",
@@ -6873,8 +6873,8 @@
       "type": "infantry",
       "size": "brigade",
       "formation": "Fatah Brigade Guard",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 87.39999999999999,
+      "organization": 84.0,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
@@ -6889,12 +6889,12 @@
       "type": "artillery",
       "size": "brigade",
       "formation": "Corps Artillery",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 59.39999999999999,
+      "organization": 81.0,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.04
     }
   ],
   "objectives": [

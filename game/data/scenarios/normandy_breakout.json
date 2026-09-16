@@ -7073,12 +7073,12 @@
       "type": "hq",
       "size": "corps",
       "formation": "VII Corps",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 41.0,
+      "organization": 90.0,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.9600000000000001
     },
     {
       "id": "s0_02_1st_infantry_division",
@@ -7089,8 +7089,8 @@
       "type": "infantry",
       "size": "division",
       "formation": "1st Infantry Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 93.888,
+      "organization": 81.6,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
@@ -7105,12 +7105,12 @@
       "type": "infantry",
       "size": "division",
       "formation": "9th Infantry Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 99.888,
+      "organization": 85.2,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.04
     },
     {
       "id": "s0_04_30th_infantry_division",
@@ -7121,12 +7121,12 @@
       "type": "infantry",
       "size": "division",
       "formation": "30th Infantry Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 94.888,
+      "organization": 82.2,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.08
     },
     {
       "id": "s0_05_2nd_armored_division",
@@ -7137,12 +7137,12 @@
       "type": "armor",
       "size": "division",
       "formation": "2nd Armored Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 111.19200000000001,
+      "organization": 85.8,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.92
     },
     {
       "id": "s0_06_3rd_armored_division",
@@ -7153,12 +7153,12 @@
       "type": "armor",
       "size": "division",
       "formation": "3rd Armored Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 106.19200000000001,
+      "organization": 82.8,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.9600000000000001
     },
     {
       "id": "s0_07_2nd_armored_cavalry_regiment",
@@ -7169,8 +7169,8 @@
       "type": "recon",
       "size": "regiment",
       "formation": "2nd Armored Cavalry Regiment",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 64.9408,
+      "organization": 86.4,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
@@ -7185,12 +7185,12 @@
       "type": "artillery",
       "size": "brigade",
       "formation": "VII Corps Artillery",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 63.39999999999999,
+      "organization": 83.4,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.04
     },
     {
       "id": "s1_20_panzer_group_west",
@@ -7201,12 +7201,12 @@
       "type": "hq",
       "size": "army",
       "formation": "Panzer Group West",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 46.0,
+      "organization": 90.0,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.9600000000000001
     },
     {
       "id": "s1_21_panzer_lehr_division",
@@ -7217,8 +7217,8 @@
       "type": "armor",
       "size": "division",
       "formation": "Panzer Lehr Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 111.19200000000001,
+      "organization": 85.8,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
@@ -7233,12 +7233,12 @@
       "type": "armor",
       "size": "division",
       "formation": "2nd SS Panzer Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 106.19200000000001,
+      "organization": 82.8,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.04
     },
     {
       "id": "s1_23_17th_ss_panzergrenadier_division",
@@ -7249,12 +7249,12 @@
       "type": "mechanized",
       "size": "division",
       "formation": "17th SS Panzergrenadier Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 109.1008,
+      "organization": 86.4,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.08
     },
     {
       "id": "s1_24_353rd_infantry_division",
@@ -7265,12 +7265,12 @@
       "type": "infantry",
       "size": "division",
       "formation": "353rd Infantry Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 96.888,
+      "organization": 83.4,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.92
     },
     {
       "id": "s1_25_5th_parachute_division",
@@ -7281,12 +7281,12 @@
       "type": "infantry",
       "size": "division",
       "formation": "5th Parachute Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 102.888,
+      "organization": 87.0,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.9600000000000001
     },
     {
       "id": "s1_26_275th_infantry_division",
@@ -7297,8 +7297,8 @@
       "type": "infantry",
       "size": "division",
       "formation": "275th Infantry Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 97.888,
+      "organization": 84.0,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
@@ -7313,12 +7313,12 @@
       "type": "artillery",
       "size": "brigade",
       "formation": "LXXXIV Corps Artillery",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 59.39999999999999,
+      "organization": 81.0,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.04
     }
   ],
   "objectives": [
@@ -7382,7 +7382,7 @@
         "fatigue": 0.0,
         "fuel": 95.0,
         "ammo": 88.0,
-        "quality": 1.0
+        "quality": 0.9600000000000001
       }
     }
   ],

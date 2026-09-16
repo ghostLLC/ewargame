@@ -147,15 +147,25 @@ def formation(
     q: int,
     r: int,
     *,
-    strength: float = 88.0,
-    organization: float = 82.0,
-    quality: float = 1.0,
+    strength: float | None = None,
+    organization: float | None = None,
+    quality: float | None = None,
     fuel: float | None = None,
     ammo: float | None = None,
     fatigue: float = 0.0,
     idx: int = 0,
 ) -> dict:
     motor = type_ in ("armor", "mechanized", "motorized", "recon", "hq", "logistics", "air_defense")
+    # Differentiate counters so the roster is not a uniform 88/82 template.
+    size_mod = {"division": 1.12, "brigade": 1.0, "regiment": 0.92, "battalion": 0.78, "corps": 1.05, "army": 1.08}.get(size, 1.0)
+    type_mod = {"armor": 1.05, "mechanized": 1.02, "infantry": 0.95, "airborne": 0.9, "recon": 0.72, "artillery": 0.7, "engineer": 0.68, "hq": 0.35, "logistics": 0.3, "air_defense": 0.75}.get(type_, 1.0)
+    jitter = ((idx * 17 + side * 3) % 11) - 5  # -5..5
+    base_strength = 92.0 * size_mod * type_mod + jitter
+    base_org = 84.0 + (jitter * 0.6)
+    base_quality = 0.92 + ((idx + side) % 5) * 0.04
+    if type_ == "hq":
+        base_strength = 40.0 + (idx % 7)
+        base_org = 90.0
     return {
         "id": f"s{side}_{idx:02d}_{slug(name)[:40]}",
         "name": name,
@@ -165,12 +175,12 @@ def formation(
         "type": type_,
         "size": size,
         "formation": name,
-        "strength": float(strength),
-        "organization": float(organization),
+        "strength": float(base_strength if strength is None else strength),
+        "organization": float(base_org if organization is None else organization),
         "fatigue": float(fatigue),
         "fuel": 95.0 if motor else 80.0 if fuel is None else float(fuel),
         "ammo": 88.0 if ammo is None else float(ammo),
-        "quality": float(quality),
+        "quality": float(base_quality if quality is None else quality),
     }
 
 

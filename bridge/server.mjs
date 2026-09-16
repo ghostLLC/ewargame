@@ -19,6 +19,7 @@ export const TOOLS = [
   { name: 'game_support', description: 'Allocate your turn’s operational support to a known map hex.', inputSchema: object({ turn: { type: 'integer', minimum: 1 }, kind: { type: 'string', enum: ['artillery','air','recon'] }, target: { type: 'array', items: { type: 'integer' }, minItems: 2, maxItems: 2 } }, ['turn','kind','target']), annotations: { readOnlyHint: false, destructiveHint: false } },
   { name: 'game_commit', description: 'Lock your orders for the current turn. Both sides must commit before resolution. This cannot be undone.', inputSchema: object({ turn: { type: 'integer', minimum: 1 } }, ['turn']), annotations: { readOnlyHint: false, destructiveHint: true } },
   { name: 'game_wait_turn', description: 'Wait up to 25 seconds for a later turn or game end. A timeout is normal: call again; do not resubmit a locked turn.', inputSchema: object({ after_turn: { type: 'integer', minimum: 0 }, timeout_ms: { type: 'integer', minimum: 0, maximum: 25000 } }, ['after_turn']), annotations: { readOnlyHint: true } },
+  { name: 'game_clear_orders', description: 'Remove all of your unlocked orders for the current turn so you can replan. Locked turns are rejected.', inputSchema: object({ turn: { type: 'integer', minimum: 1 } }, ['turn']), annotations: { readOnlyHint: false, destructiveHint: true } },
 ];
 
 export function connectionPath() {

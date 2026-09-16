@@ -8745,12 +8745,12 @@
       "type": "hq",
       "size": "corps",
       "formation": "VII Corps",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 41.0,
+      "organization": 90.0,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.9600000000000001
     },
     {
       "id": "s0_02_1st_armored_division",
@@ -8761,8 +8761,8 @@
       "type": "armor",
       "size": "division",
       "formation": "1st Armored Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 104.19200000000001,
+      "organization": 81.6,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
@@ -8777,12 +8777,12 @@
       "type": "armor",
       "size": "division",
       "formation": "3rd Armored Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 110.19200000000001,
+      "organization": 85.2,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.04
     },
     {
       "id": "s0_04_1st_cavalry_division",
@@ -8793,12 +8793,12 @@
       "type": "mechanized",
       "size": "division",
       "formation": "1st Cavalry Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 102.1008,
+      "organization": 82.2,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.08
     },
     {
       "id": "s0_05_2nd_armored_cavalry_regiment",
@@ -8809,12 +8809,12 @@
       "type": "recon",
       "size": "regiment",
       "formation": "2nd Armored Cavalry Regiment",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 63.940799999999996,
+      "organization": 85.8,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.92
     },
     {
       "id": "s0_06_3rd_armored_cavalry_regiment",
@@ -8825,12 +8825,12 @@
       "type": "recon",
       "size": "regiment",
       "formation": "3rd Armored Cavalry Regiment",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 58.940799999999996,
+      "organization": 82.8,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.9600000000000001
     },
     {
       "id": "s0_07_1st_infantry_division_mechanized",
@@ -8841,8 +8841,8 @@
       "type": "mechanized",
       "size": "division",
       "formation": "1st Infantry Division (Mechanized)",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 109.1008,
+      "organization": 86.4,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
@@ -8857,12 +8857,12 @@
       "type": "artillery",
       "size": "brigade",
       "formation": "210th Field Artillery Brigade",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 63.39999999999999,
+      "organization": 83.4,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.04
     },
     {
       "id": "s0_09_xviii_airborne_corps",
@@ -8873,12 +8873,12 @@
       "type": "hq",
       "size": "corps",
       "formation": "XVIII Airborne Corps",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 42.0,
+      "organization": 90.0,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.08
     },
     {
       "id": "s0_10_24th_infantry_division_mechanized",
@@ -8889,12 +8889,12 @@
       "type": "mechanized",
       "size": "division",
       "formation": "24th Infantry Division (Mechanized)",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 105.1008,
+      "organization": 84.0,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.92
     },
     {
       "id": "s1_20_iraqi_iii_corps",
@@ -8905,12 +8905,12 @@
       "type": "hq",
       "size": "corps",
       "formation": "Iraqi III Corps",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 46.0,
+      "organization": 90.0,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.9600000000000001
     },
     {
       "id": "s1_21_tawakalna_republican_guard_division",
@@ -8921,8 +8921,8 @@
       "type": "armor",
       "size": "division",
       "formation": "Tawakalna Republican Guard Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 111.19200000000001,
+      "organization": 85.8,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
@@ -8937,12 +8937,12 @@
       "type": "armor",
       "size": "division",
       "formation": "Medina Republican Guard Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 106.19200000000001,
+      "organization": 82.8,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.04
     },
     {
       "id": "s1_23_hammurabi_republican_guard_division",
@@ -8953,12 +8953,12 @@
       "type": "mechanized",
       "size": "division",
       "formation": "Hammurabi Republican Guard Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 109.1008,
+      "organization": 86.4,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.08
     },
     {
       "id": "s1_24_26th_infantry_division",
@@ -8969,12 +8969,12 @@
       "type": "infantry",
       "size": "division",
       "formation": "26th Infantry Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 96.888,
+      "organization": 83.4,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.92
     },
     {
       "id": "s1_25_31st_infantry_division",
@@ -8985,12 +8985,12 @@
       "type": "infantry",
       "size": "division",
       "formation": "31st Infantry Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 102.888,
+      "organization": 87.0,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.9600000000000001
     },
     {
       "id": "s1_26_48th_infantry_division",
@@ -9001,8 +9001,8 @@
       "type": "infantry",
       "size": "division",
       "formation": "48th Infantry Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 97.888,
+      "organization": 84.0,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
@@ -9017,12 +9017,12 @@
       "type": "mechanized",
       "size": "division",
       "formation": "5th Mechanized Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 100.1008,
+      "organization": 81.0,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.04
     },
     {
       "id": "s1_28_iraqi_corps_artillery",
@@ -9033,12 +9033,12 @@
       "type": "artillery",
       "size": "brigade",
       "formation": "Iraqi Corps Artillery",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 65.39999999999999,
+      "organization": 84.6,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.08
     }
   ],
   "objectives": [

@@ -2,6 +2,7 @@ extends Control
 
 signal unit_selected(unit_id: String)
 signal hex_selected(q: int, r: int)
+signal hex_hovered(q: int, r: int)
 
 const PAPER = Color("e7e4d5")
 const INK = Color("384944")
@@ -18,6 +19,7 @@ var moved: bool = false
 var press_position: Vector2 = Vector2.ZERO
 var font: Font
 var hovered: Vector2i = Vector2i(-99, -99)
+var preview_path: Array = []
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -109,9 +111,13 @@ func _draw() -> void:
 		if tile.get("bridge", false):
 			draw_line(center+Vector2(-rad*0.19,0),center+Vector2(rad*0.19,0),INK,3.0,true)
 		if overlay == "control":
-			var owner = int(tile.get("control", tile.get("owner", -1)))
+			var ckey = "%d,%d" % [q, r]
+			var live = observation.get("control", {})
+			var owner = int(live.get(ckey, tile.get("control", tile.get("owner", -1))))
 			if owner >= 0:
 				draw_colored_polygon(poly,Color(0.17,0.35,0.48,0.19) if owner == 0 else Color(0.65,0.28,0.22,0.19))
+		if str(tile.get("label", "")) != "" and zoom_level >= 0.85:
+			_label(center+Vector2(0,-rad*0.55), str(tile.get("label")), Color(0.25,0.32,0.28,0.85), clampi(int(rad*0.28),9,12))
 		if hovered == Vector2i(q,r):
 			draw_polyline(border,Color("a18a51"),2.0,true)
 		if zoom_level > 1.65:
@@ -170,6 +176,32 @@ func _draw_orders(rad: float) -> void:
 			draw_dashed_line(a,b,color,2.3,7.0,true)
 			var direction = (a-b).normalized()
 			draw_colored_polygon(PackedVector2Array([b,b+direction.rotated(0.42)*rad*0.42,b+direction.rotated(-0.42)*rad*0.42]),color)
+	if preview_path is Array and preview_path.size() >= 2:
+		var pts = PackedVector2Array()
+		for cell in preview_path:
+			pts.append(_center(int(cell[0]), int(cell[1])))
+		for i in range(1, pts.size()):
+			draw_line(pts[i-1], pts[i], Color("b79953"), 2.8, true)
+		var last = pts[pts.size()-1]
+		var dir = (pts[pts.size()-1]-pts[pts.size()-2]).normalized()
+		draw_colored_polygon(PackedVector2Array([last,last+dir.rotated(0.42)*rad*0.42,last+dir.rotated(-0.42)*rad*0.42]),Color("b79953"))
+	# supply paths when overlay supply
+	if overlay == "supply":
+		for unit in observation.get("units", []):
+			var sp = unit.get("supply_path", [])
+			if not sp is Array or sp.size() < 2: continue
+			if int(unit.get("side", -1)) != int(observation.get("side", 0)): continue
+			var pts = PackedVector2Array()
+			for cell in sp:
+				pts.append(_center(int(cell[0]), int(cell[1])))
+			var col = Color(0.18,0.45,0.38,0.55) if float(unit.get("supply",1.0)) >= 0.5 else Color(0.72,0.32,0.22,0.65)
+			for i in range(1, pts.size()):
+				draw_dashed_line(pts[i-1], pts[i], col, 1.6, 4.0, true)
+		for unit in observation.get("units", []):
+			if int(unit.get("side",-1)) != int(observation.get("side",0)): continue
+			if float(unit.get("supply",1.0)) >= 0.5: continue
+			var at = _center(int(unit.get("q",0)),int(unit.get("r",0)))
+			draw_arc(at, rad*0.92, 0, TAU, 24, Color(0.75,0.28,0.2,0.8), 2.0, true)
 
 func _draw_counter(unit: Dictionary, rad: float, count: int) -> void:
 	var at = _center(int(unit.get("q",0)),int(unit.get("r",0)))
@@ -209,7 +241,12 @@ func _draw_counter(unit: Dictionary, rad: float, count: int) -> void:
 		var designation = str(unit.get("size",""))
 		var markers = {"regiment":"III","brigade":"X","division":"XX","battalion":"II"}
 		_label(at+Vector2(0,-height*0.28),markers.get(designation, "X"),ink,8)
-		_label(at+Vector2(0,height*0.35),str(int(unit.get("strength",0))) if own else "识别",ink,9)
+		var enemy_label = "识别"
+		var band = str(unit.get("strength_band", ""))
+		if band == "strong": enemy_label = "强"
+		elif band == "medium": enemy_label = "中"
+		elif band == "weak": enemy_label = "弱"
+		_label(at+Vector2(0,height*0.35),str(int(unit.get("strength",0))) if own else enemy_label,ink,9)
 	if own:
 		var organization = float(unit.get("organization",100.0))
 		if organization <= 1.0: organization *= 100.0
@@ -261,5 +298,53 @@ func _gui_input(event: InputEvent) -> void:
 		else:
 			hovered = _nearest(event.position)
 			if hovered.x != -99:
-				tooltip_text = "坐标 %d, %d · 左键选择 / 下达目标 · 拖动平移 · 滚轮缩放" % [hovered.x,hovered.y]
+				hex_hovered.emit(hovered.x, hovered.y)
+				var tip = "坐标 %d, %d" % [hovered.x, hovered.y]
+				for tile in observation.get("map", {}).get("tiles", []):
+					if int(tile.get("q", -1)) == hovered.x and int(tile.get("r", -1)) == hovered.y:
+						var terrain = str(tile.get("terrain", "?"))
+						var extras = []
+						if tile.get("road", false): extras.append("道路")
+						if tile.get("rail", false): extras.append("铁路")
+						if tile.get("river", false): extras.append("河流")
+						if tile.get("bridge", false): extras.append("桥梁")
+						if str(tile.get("label", "")) != "": extras.append(str(tile.get("label")))
+						tip = "%s · %s%s" % [tip, terrain, (" · " + " · ".join(extras)) if extras else ""]
+						tip += "\n左键选择 / 下达目标 · 拖动平移 · 滚轮缩放"
+						break
+				tooltip_text = tip
+			else:
+				hex_hovered.emit(-99, -99)
 		queue_redraw()
+
+
+func handle_key(event: InputEventKey) -> bool:
+	if not event.pressed:
+		return false
+	var step = 36.0
+	match event.keycode:
+		KEY_LEFT, KEY_A:
+			pan.x += step
+			queue_redraw()
+			return true
+		KEY_RIGHT, KEY_D:
+			pan.x -= step
+			queue_redraw()
+			return true
+		KEY_UP, KEY_W:
+			pan.y += step
+			queue_redraw()
+			return true
+		KEY_DOWN, KEY_S:
+			pan.y -= step
+			queue_redraw()
+			return true
+		KEY_EQUAL, KEY_KP_ADD:
+			zoom_level = minf(3.0, zoom_level * 1.12)
+			queue_redraw()
+			return true
+		KEY_MINUS, KEY_KP_SUBTRACT:
+			zoom_level = maxf(0.65, zoom_level / 1.12)
+			queue_redraw()
+			return true
+	return false

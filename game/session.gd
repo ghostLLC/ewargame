@@ -108,6 +108,16 @@ func _find_scenario(id: String) -> Dictionary:
 			return scenario
 	return {}
 
+func preview_move(unit_id: String, target: Array) -> Dictionary:
+	if _state.is_empty():
+		return {"ok": false}
+	return _engine.preview_move(_state, unit_id, target)
+
+func estimate_combat(attacker_id: String, defender_id: String) -> Dictionary:
+	if _state.is_empty():
+		return {"ok": false}
+	return _engine.estimate_combat(_state, attacker_id, defender_id)
+
 func place_order(unit_id: String, kind: String, target: Array = [], stance: String = "balanced") -> Dictionary:
 	if pending_handoff or replay_active or _busy:
 		return _fail("当前不能下令")
@@ -554,7 +564,32 @@ func agent_command(side: int, method: String, params: Dictionary) -> Dictionary:
 		"observe":
 			return {"ok": true, "data": _engine.observe(_state, side)}
 		"rules":
-			return {"ok": true, "data": {"orders": ["move", "attack", "defend", "rest", "recon", "reserve", "retreat", "engineer"], "stances": ["cautious", "balanced", "aggressive"], "supports": ["artillery", "air", "recon"], "turn_hours": _state.scenario.get("turn_hours", 6), "instruction": "Use only your observation. Submit unit_id, kind, target [q,r], stance. Orders persist. Submit once per turn. Await a higher turn number after commit."}}
+			return {"ok": true, "data": {
+				"orders": ["move", "attack", "defend", "rest", "recon", "reserve", "retreat", "engineer"],
+				"stances": ["cautious", "balanced", "aggressive"],
+				"supports": ["artillery", "air", "recon"],
+				"turn_hours": _state.scenario.get("turn_hours", 6),
+				"hex_km": _state.scenario.get("hex_km", 5),
+				"terrain_cost_note": "plains 1, desert 1.5, town 1.5, forest/hills 2, city 2, bocage 2.5, marsh 3.5, mountain 4; water impassable unless bridge",
+				"fog": "You only receive your own full units, visible/masked enemies (no exact strength), own depots, dated contacts, and your orders. Never query seed, enemy orders, or hidden strength.",
+				"wego": "Both sides lock orders, then six simultaneous substeps resolve. Orders persist until changed.",
+				"support": "One operational support per side per turn (artillery needs in-range battery; recon reveals a radius; air depends on era/weather).",
+				"zoc": "Combat formations entering an enemy zone of control stop movement for the turn.",
+				"clear_orders": "game_clear_orders removes your unlocked orders for the current turn.",
+				"instruction": "Use only your observation. Submit unit_id, kind, target [q,r], stance. Orders persist. Submit once per turn. Await a higher turn number after commit."
+			}}
+		"clear_orders":
+			if int(params.get("turn", -1)) != int(_state.turn):
+				return {"ok": false, "error": "stale_turn"}
+			if _state.ready[side]:
+				return {"ok": false, "error": "turn_locked"}
+			var cleared = 0
+			for unit in _state.units:
+				if int(unit.side) == side and _state.orders.has(str(unit.id)):
+					_state.orders.erase(str(unit.id))
+					cleared += 1
+			_publish()
+			return {"ok": true, "cleared": cleared}
 		"orders":
 			if int(params.get("turn", -1)) != int(_state.turn):
 				return {"ok": false, "error": "stale_turn"}

@@ -1573,12 +1573,12 @@
       "type": "hq",
       "size": "brigade",
       "formation": "蓝方指挥部",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 41.0,
+      "organization": 90.0,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.9600000000000001
     },
     {
       "id": "s0_02_1",
@@ -1589,8 +1589,8 @@
       "type": "mechanized",
       "size": "battalion",
       "formation": "第1机械化营",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 69.1952,
+      "organization": 81.6,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
@@ -1605,12 +1605,12 @@
       "type": "armor",
       "size": "battalion",
       "formation": "第2装甲连",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 77.34800000000001,
+      "organization": 85.2,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.04
     },
     {
       "id": "s0_04_3",
@@ -1621,12 +1621,12 @@
       "type": "infantry",
       "size": "battalion",
       "formation": "第3步兵营",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 65.172,
+      "organization": 82.2,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.08
     },
     {
       "id": "s0_05_",
@@ -1637,12 +1637,12 @@
       "type": "artillery",
       "size": "battalion",
       "formation": "炮兵连",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 53.232,
+      "organization": 85.8,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.92
     },
     {
       "id": "s0_06_",
@@ -1653,12 +1653,12 @@
       "type": "engineer",
       "size": "battalion",
       "formation": "工兵排",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 46.796800000000005,
+      "organization": 82.8,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.9600000000000001
     },
     {
       "id": "s1_10_",
@@ -1669,12 +1669,12 @@
       "type": "hq",
       "size": "brigade",
       "formation": "红方指挥部",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 43.0,
+      "organization": 90.0,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.9600000000000001
     },
     {
       "id": "s1_11_",
@@ -1685,8 +1685,8 @@
       "type": "armor",
       "size": "battalion",
       "formation": "警戒装甲排",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 73.34800000000001,
+      "organization": 82.8,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
@@ -1701,12 +1701,12 @@
       "type": "infantry",
       "size": "battalion",
       "formation": "前沿步兵连",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 72.172,
+      "organization": 86.4,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.04
     },
     {
       "id": "s1_13_",
@@ -1717,12 +1717,12 @@
       "type": "infantry",
       "size": "battalion",
       "formation": "反坦克组",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 67.172,
+      "organization": 83.4,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.08
     },
     {
       "id": "s1_14_",
@@ -1733,12 +1733,12 @@
       "type": "recon",
       "size": "battalion",
       "formation": "观察哨",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 56.6672,
+      "organization": 87.0,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.92
     }
   ],
   "objectives": [

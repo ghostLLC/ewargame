@@ -5577,12 +5577,12 @@
       "type": "hq",
       "size": "corps",
       "formation": "VII Corps HQ",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 41.0,
+      "organization": 90.0,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.9600000000000001
     },
     {
       "id": "s0_02_4th_infantry_division",
@@ -5593,8 +5593,8 @@
       "type": "infantry",
       "size": "division",
       "formation": "4th Infantry Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 93.888,
+      "organization": 81.6,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
@@ -5609,12 +5609,12 @@
       "type": "airborne",
       "size": "division",
       "formation": "82nd Airborne Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 94.736,
+      "organization": 85.2,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.04
     },
     {
       "id": "s0_04_101st_airborne_division",
@@ -5625,12 +5625,12 @@
       "type": "airborne",
       "size": "division",
       "formation": "101st Airborne Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 89.736,
+      "organization": 82.2,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.08
     },
     {
       "id": "s0_05_90th_infantry_division",
@@ -5641,12 +5641,12 @@
       "type": "infantry",
       "size": "division",
       "formation": "90th Infantry Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 100.888,
+      "organization": 85.8,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.92
     },
     {
       "id": "s0_06_1st_engineer_special_brigade",
@@ -5657,12 +5657,12 @@
       "type": "engineer",
       "size": "brigade",
       "formation": "1st Engineer Special Brigade",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 60.56,
+      "organization": 82.8,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.9600000000000001
     },
     {
       "id": "s0_07_2nd_ranger_battalion",
@@ -5673,8 +5673,8 @@
       "type": "infantry",
       "size": "battalion",
       "formation": "2nd Ranger Battalion",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 72.172,
+      "organization": 86.4,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
@@ -5689,12 +5689,12 @@
       "type": "artillery",
       "size": "brigade",
       "formation": "VII Corps Artillery",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 63.39999999999999,
+      "organization": 83.4,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.04
     },
     {
       "id": "s1_20_seventh_army",
@@ -5705,12 +5705,12 @@
       "type": "hq",
       "size": "army",
       "formation": "Seventh Army",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 46.0,
+      "organization": 90.0,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.9600000000000001
     },
     {
       "id": "s1_21_709th_infantry_division",
@@ -5721,8 +5721,8 @@
       "type": "infantry",
       "size": "division",
       "formation": "709th Infantry Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 100.888,
+      "organization": 85.8,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
@@ -5737,12 +5737,12 @@
       "type": "infantry",
       "size": "division",
       "formation": "243rd Infantry Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 95.888,
+      "organization": 82.8,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.04
     },
     {
       "id": "s1_23_91st_air_landing_division",
@@ -5753,12 +5753,12 @@
       "type": "infantry",
       "size": "division",
       "formation": "91st Air Landing Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 101.888,
+      "organization": 86.4,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.08
     },
     {
       "id": "s1_24_352nd_infantry_division",
@@ -5769,12 +5769,12 @@
       "type": "infantry",
       "size": "division",
       "formation": "352nd Infantry Division",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 96.888,
+      "organization": 83.4,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.92
     },
     {
       "id": "s1_25_6th_parachute_regiment",
@@ -5785,12 +5785,12 @@
       "type": "infantry",
       "size": "regiment",
       "formation": "6th Parachute Regiment",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 85.408,
+      "organization": 87.0,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 0.9600000000000001
     },
     {
       "id": "s1_26_mobile_brigade_30",
@@ -5801,8 +5801,8 @@
       "type": "motorized",
       "size": "brigade",
       "formation": "Mobile Brigade 30",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 92.0,
+      "organization": 84.0,
       "fatigue": 0.0,
       "fuel": 95.0,
       "ammo": 88.0,
@@ -5817,12 +5817,12 @@
       "type": "artillery",
       "size": "brigade",
       "formation": "LXXXIV Corps Artillery",
-      "strength": 88.0,
-      "organization": 82.0,
+      "strength": 59.39999999999999,
+      "organization": 81.0,
       "fatigue": 0.0,
       "fuel": 80.0,
       "ammo": 88.0,
-      "quality": 1.0
+      "quality": 1.04
     }
   ],
   "objectives": [
