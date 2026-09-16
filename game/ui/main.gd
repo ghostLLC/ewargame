@@ -34,6 +34,11 @@ var lan_window: AcceptDialog
 var room_list: VBoxContainer
 var hovered_hex: Array = []
 var preview_path: Array = []
+var turn_label: Label
+var score_label: Label
+var commit_button: Button
+var commit_note: Label
+var commit_summary: Label
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -130,7 +135,75 @@ func _spacer(parent: Node) -> Control:
 	parent.add_child(c)
 	return c
 
+func _clear_children(node: Node) -> void:
+	if not is_instance_valid(node):
+		return
+	for child in node.get_children():
+		node.remove_child(child)
+		child.queue_free()
+
+func _update_live_header() -> void:
+	var view: Dictionary = GameSession.view
+	if is_instance_valid(turn_label):
+		turn_label.text = "回合  %02d / %02d" % [view.get("turn",1),view.get("max_turns",12)]
+	var weather_names = {"clear":"晴朗","rain":"降雨","snow":"降雪","fog":"浓雾","overcast":"阴天","storm":"风暴","night":"夜暗"}
+	var weather = str(view.get("weather","clear"))
+	if is_instance_valid(score_label):
+		score_label.text = "%s  ·  积分 %s : %s" % [weather_names.get(weather,weather),view.get("scores",[0,0])[0],view.get("scores",[0,0])[1]]
+	var is_finished = str(view.get("phase","")) in ["finished","complete","ended"]
+	if is_instance_valid(commit_button):
+		if is_finished:
+			commit_button.text = "战役结束 · 查看战报"
+		elif GameSession.mode == "observer":
+			commit_button.text = "继续推演" if GameSession.observer_paused() else "暂停推演"
+		else:
+			commit_button.text = "锁定命令 · 结束回合   →"
+		commit_button.disabled = bool(view.get("replay_active",false))
+	var ready: Array = view.get("ready",[false,false])
+	var own_units = []
+	for unit in view.get("units", []):
+		if int(unit.get("side",-1)) == int(view.get("side",0)) and float(unit.get("strength",0)) > 0:
+			own_units.append(unit)
+	var ordered = view.get("orders", {})
+	var n_ordered = 0
+	var missing = []
+	for unit in own_units:
+		var uid = str(unit.get("id",""))
+		if ordered is Dictionary and ordered.has(uid):
+			n_ordered += 1
+		else:
+			missing.append(str(unit.get("name", uid)))
+	if is_instance_valid(commit_note):
+		if GameSession.mode == "observer":
+			commit_note.text = "双方 AI 持续推演 · 可随时暂停"
+		else:
+			commit_note.text = "双方命令同时结算 · 六个战术时段" if not (true in ready) else "命令已锁定 · 等待另一方"
+	if is_instance_valid(commit_summary):
+		var summary = "已下令 %d / %d" % [n_ordered, own_units.size()]
+		if not missing.is_empty() and not (true in ready):
+			summary += " · 未下令：" + ("、".join(missing.slice(0, 4))) + ("…" if missing.size() > 4 else "")
+		commit_summary.text = summary
+
 func _refresh() -> void:
+	var in_game = not GameSession.view.is_empty()
+	# Incremental path: keep map camera and shell when staying in a match.
+	if in_game and was_game and is_instance_valid(canvas) and is_instance_valid(inspector) and is_instance_valid(roster):
+		if GameSession.pending_handoff:
+			_handoff()
+			return
+		canvas.update_view(GameSession.view, selected_id)
+		_clear_children(inspector)
+		_inspect_unit()
+		_clear_children(roster)
+		_build_roster()
+		_update_live_header()
+		if is_instance_valid(status):
+			status.text = notice_text
+		var turn_now = int(GameSession.view.get("turn", -1))
+		if last_turn >= 0 and turn_now > last_turn and has_node("/root/GameAudio"):
+			get_node("/root/GameAudio").play("turn")
+		last_turn = turn_now
+		return
 	if is_instance_valid(canvas):
 		saved_pan = canvas.pan
 		saved_zoom = canvas.zoom_level
@@ -283,10 +356,12 @@ func _build_game() -> void:
 	var turn_box = VBoxContainer.new()
 	turn_box.add_theme_constant_override("separation",2)
 	top.add_child(turn_box)
-	turn_box.add_child(_label("回合  %02d / %02d" % [view.get("turn",1),view.get("max_turns",12)],21,GOLD))
+	turn_label = _label("回合  %02d / %02d" % [view.get("turn",1),view.get("max_turns",12)],21,GOLD)
+	turn_box.add_child(turn_label)
 	var weather_names = {"clear":"晴朗","rain":"降雨","snow":"降雪","fog":"浓雾","overcast":"阴天","storm":"风暴","night":"夜暗"}
 	var weather = str(view.get("weather","clear"))
-	turn_box.add_child(_label("%s  ·  积分 %s : %s" % [weather_names.get(weather,weather),view.get("scores",[0,0])[0],view.get("scores",[0,0])[1]],12,MUTED))
+	score_label = _label("%s  ·  积分 %s : %s" % [weather_names.get(weather,weather),view.get("scores",[0,0])[0],view.get("scores",[0,0])[1]],12,MUTED)
+	turn_box.add_child(score_label)
 	top.add_child(_button("战报",_reports))
 	top.add_child(_button("菜单",_game_menu))
 	var middle = HBoxContainer.new()
@@ -377,12 +452,12 @@ func _build_game() -> void:
 			commit_label = "继续推演" if GameSession.observer_paused() else "暂停推演"
 		else:
 			commit_label = "锁定命令 · 结束回合   →"
-	var commit = _button(commit_label,_reports if is_finished else _commit)
-	commit.custom_minimum_size.y = 42
-	commit.add_theme_stylebox_override("normal",_box(Color("a08954"),5,Color("d7bc7e")))
-	commit.add_theme_color_override("font_color",Color("122c2b"))
-	commit.disabled = bool(view.get("replay_active",false))
-	commit_box.add_child(commit)
+	commit_button = _button(commit_label,_reports if is_finished else _commit)
+	commit_button.custom_minimum_size.y = 42
+	commit_button.add_theme_stylebox_override("normal",_box(Color("a08954"),5,Color("d7bc7e")))
+	commit_button.add_theme_color_override("font_color",Color("122c2b"))
+	commit_button.disabled = bool(view.get("replay_active",false))
+	commit_box.add_child(commit_button)
 	var ready: Array = view.get("ready",[false,false])
 	var own_units = []
 	for unit in view.get("units", []):
@@ -398,14 +473,17 @@ func _build_game() -> void:
 		else:
 			missing.append(str(unit.get("name", uid)))
 	if GameSession.mode == "observer":
-		commit_box.add_child(_label("双方 AI 持续推演 · 可随时暂停",10,MUTED))
+		commit_note = _label("双方 AI 持续推演 · 可随时暂停",10,MUTED)
+		commit_box.add_child(commit_note)
 	else:
 		var base = "双方命令同时结算 · 六个战术时段" if not (true in ready) else "命令已锁定 · 等待另一方"
-		commit_box.add_child(_label(base,10,MUTED))
+		commit_note = _label(base,10,MUTED)
+		commit_box.add_child(commit_note)
 		var summary = "已下令 %d / %d" % [n_ordered, own_units.size()]
 		if not missing.is_empty() and not (true in ready):
 			summary += " · 未下令：" + ("、".join(missing.slice(0, 4))) + ("…" if missing.size() > 4 else "")
-		commit_box.add_child(_label(summary,10,MUTED))
+		commit_summary = _label(summary,10,MUTED)
+		commit_box.add_child(commit_summary)
 	var upcoming: Array = view.get("upcoming_reinforcements", [])
 	if upcoming is Array and not upcoming.is_empty():
 		var rf = upcoming[0]

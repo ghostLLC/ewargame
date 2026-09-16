@@ -22,6 +22,8 @@ static func new_game(scenario: Dictionary, seed: int = 42) -> Dictionary:
 		state.units.append(_unit(raw))
 	for objective in state.objectives:
 		objective["owner"] = int(objective.get("owner", -1))
+		if objective.owner in [0, 1]:
+			state.scores[objective.owner] += int(objective.get("value", 1))
 	for tile in scenario.get("tiles", []):
 		state.control[_key([tile.q, tile.r])] = int(tile.get("owner", -1))
 	for unit in state.units:
@@ -185,6 +187,8 @@ static func _substep(state: Dictionary, rng: RandomNumberGenerator, step: int) -
 			order.delay = int(order.delay) - 1
 			unit.command_delay = order.delay
 			continue
+		if unit.get("zoc_stop", false):
+			continue
 		var kind = str(order.get("kind", "defend"))
 		var target: Array = order.get("target", [])
 		if unit.retreated or kind not in ["move", "attack", "recon", "retreat", "engineer"] or target.is_empty() or _pos(unit) == target:
@@ -283,6 +287,7 @@ static func _substep(state: Dictionary, rng: RandomNumberGenerator, step: int) -
 		if unit.type not in ["hq", "logistics", "air_defense"] and _enemy_zoc(state, next, unit.side):
 			intents.erase(unit.id)
 			unit.movement_remaining = 0.0
+			unit["zoc_stop"] = true
 	for unit in movers:
 		if not accepted.has(unit.id):
 			continue
@@ -404,6 +409,7 @@ static func _finish_units(state: Dictionary) -> void:
 		unit.erase("moved")
 		unit.erase("fought")
 		unit.erase("retreated")
+		unit.erase("zoc_stop")
 
 static func _retreat_threshold(state: Dictionary, unit: Dictionary) -> float:
 	var stance = state.orders.get(unit.id, {}).get("stance", "balanced")
@@ -746,11 +752,15 @@ static func _score(state: Dictionary) -> void:
 				present[unit.side] = true
 		if present[0] != present[1]:
 			var owner = 0 if present[0] else 1
-			if int(objective.get("owner", -1)) != owner:
+			var previous = int(objective.get("owner", -1))
+			if previous != owner:
+				objective.owner = owner
 				_event(state, -1, "%s由%s控制" % [objective.get("name", "目标"), state.scenario.get("sides", [{"name": "蓝方"}, {"name": "红方"}])[owner].name])
-			objective.owner = owner
-		if int(objective.get("owner", -1)) in [0, 1]:
-			state.scores[int(objective.owner)] += int(objective.get("value", 1))
+				if previous in [0, 1] and previous != owner:
+					state.scores[previous] = maxi(0, state.scores[previous] - int(objective.get("value", 1)))
+				if owner in [0, 1]:
+					state.scores[owner] += int(objective.get("value", 1))
+	# Holding an objective no longer stacks score every turn; capture/loss moves the point once.
 	var alive = [0, 0]
 	for unit in state.units:
 		if unit.strength > 0:
