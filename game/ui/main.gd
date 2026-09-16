@@ -761,6 +761,31 @@ func _reports() -> void:
 	else:
 		text += " · 敌方可见 %d" % alive[0]
 	text += "\n"
+	text += "\n[color=#c6aa6d]积分时间线[/color]\n"
+	if GameSession.has_method("score_timeline"):
+		var timeline = GameSession.score_timeline()
+		if timeline is Array and not timeline.is_empty():
+			var parts = []
+			for row in timeline:
+				parts.append("T%s %s:%s" % [row.get("turn"), row.get("a"), row.get("b")])
+			text += " · ".join(parts) + "\n"
+		else:
+			text += "开局 " + str(view.get("scores", [0, 0])) + "\n"
+	text += "\n[color=#c6aa6d]本方损耗榜[/color]\n"
+	var losses = []
+	for unit in view.get("units", []):
+		if int(unit.get("side", -1)) != int(view.get("side", 0)):
+			continue
+		var init = float(unit.get("initial_strength", unit.get("strength", 0)))
+		var now = float(unit.get("strength", 0))
+		if init > 0 and init - now > 1.0:
+			losses.append({"name": str(unit.get("name", unit.get("id"))), "delta": init - now, "now": now})
+	losses.sort_custom(func(a, b): return float(a.delta) > float(b.delta))
+	if losses.is_empty():
+		text += "本方暂无明显损耗。\n"
+	else:
+		for row in losses.slice(0, 8):
+			text += "· %s  −%.1f（现存 %.1f）\n" % [row.name, row.delta, row.now]
 	var upcoming: Array = view.get("upcoming_reinforcements", [])
 	if upcoming is Array and not upcoming.is_empty():
 		text += "\n[color=#c6aa6d]增援预告[/color]\n"

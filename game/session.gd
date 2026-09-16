@@ -108,6 +108,13 @@ func _find_scenario(id: String) -> Dictionary:
 			return scenario
 	return {}
 
+func score_timeline() -> Array:
+	var out: Array = []
+	for snapshot in _history:
+		var scores = snapshot.get("scores", [0, 0])
+		out.append({"turn": int(snapshot.get("turn", 0)), "a": int(scores[0]), "b": int(scores[1])})
+	return out
+
 func preview_move(unit_id: String, target: Array) -> Dictionary:
 	if _state.is_empty():
 		return {"ok": false}

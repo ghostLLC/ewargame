@@ -42,6 +42,7 @@ static func _unit(raw: Dictionary) -> Dictionary:
 	unit["q"] = int(unit.get("q", 0))
 	unit["r"] = int(unit.get("r", 0))
 	unit["id"] = str(unit.id)
+	unit["initial_strength"] = float(unit.strength)
 	return unit
 
 static func validate_order(state: Dictionary, side: int, order: Dictionary) -> Dictionary:
