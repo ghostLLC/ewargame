@@ -1,5 +1,8 @@
 # 战线 · 战役指挥（EWarGame）
 
+[![CI](https://github.com/ghostLLC/ewargame/actions/workflows/ci.yml/badge.svg)](https://github.com/ghostLLC/ewargame/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 Windows 中文 2D 六角格作战级兵棋。WEGO 秘密同时下令，确定性裁决；人机 / 热座 / 局域网 / 观察模式；本地 MCP 桥可供 Agent 代打一方（本版不要求真实 Agent 整局验收）。
 
 **License:** MIT（见 [LICENSE](LICENSE)）。字体 Noto Sans SC 为 SIL OFL 1.1（`game/assets/fonts/OFL.txt`）。
