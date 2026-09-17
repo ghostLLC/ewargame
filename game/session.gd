@@ -4,6 +4,7 @@ extends Node
 signal view_changed
 signal notice(message: String)
 signal lobby_changed
+signal turn_resolved(brief: Dictionary)
 
 const Storage = preload("res://storage.gd")
 const AgentService = preload("res://agent_service.gd")
@@ -32,6 +33,8 @@ var _agent: Node
 var _observer_timer = 0.0
 var _observer_paused = false
 var ai_difficulty: String = "normal"
+var last_turn_brief: Dictionary = {}
+var show_turn_brief: bool = true
 
 func _ready() -> void:
 	_engine = load("res://core/engine.gd")
@@ -212,6 +215,8 @@ func accept_handoff() -> void:
 	if mode == "hotseat" and pending_handoff:
 		pending_handoff = false
 		_publish()
+		if show_turn_brief and not last_turn_brief.is_empty():
+			turn_resolved.emit(last_turn_brief)
 
 func set_ai_difficulty(level: String) -> void:
 	if level not in ["easy", "normal", "hard"]:
@@ -230,8 +235,13 @@ func _resolve_turn() -> void:
 	if _busy:
 		return
 	_busy = true
+	var prev_scores = [0, 0]
+	if not _state.is_empty():
+		prev_scores = [int(_state.get("scores", [0, 0])[0]), int(_state.get("scores", [0, 0])[1])]
+	var prev_turn = int(_state.get("turn", 1))
 	_state = _engine.resolve(_state)
 	_state["ready"] = [false, false]
+	last_turn_brief = _build_turn_brief(prev_turn, prev_scores)
 	var snap = _state.duplicate(true)
 	# Tiles are large and only mutated in place for rare engineer bridges; share the array.
 	if snap.has("scenario") and _state.has("scenario"):
@@ -246,8 +256,61 @@ func _resolve_turn() -> void:
 		player_side = 1 - player_side
 		view = {}
 		view_changed.emit()
+		# Brief is shown after handoff accept on the next publish.
 	else:
 		_publish()
+		if show_turn_brief and not last_turn_brief.is_empty():
+			turn_resolved.emit(last_turn_brief)
+
+func _build_turn_brief(prev_turn: int, prev_scores: Array) -> Dictionary:
+	if _state.is_empty():
+		return {}
+	var finished_turn = int(_state.get("turn", prev_turn + 1)) - 1
+	var scores = _state.get("scores", [0, 0])
+	var brief = {
+		"turn": finished_turn,
+		"weather": str(_state.get("weather", "clear")),
+		"scores": [int(scores[0]), int(scores[1])]
+	}
+	brief["score_delta"] = [int(scores[0]) - int(prev_scores[0]), int(scores[1]) - int(prev_scores[1])]
+	var fights = []
+	if _state.has("combat_summary"):
+		for id in _state.combat_summary:
+			var row = _state.combat_summary[id]
+			if int(row.get("fights", 0)) > 0:
+				fights.append(row)
+	fights.sort_custom(func(a, b): return float(a.get("loss", 0)) > float(b.get("loss", 0)))
+	brief["fights"] = fights
+	var flips = []
+	var moves = []
+	var support = []
+	var reinforce = []
+	var other = []
+	for event in _state.get("events", []):
+		var text = str(event.get("text", event))
+		if text.contains("控制") and text.contains("由"):
+			flips.append(text)
+		elif text.contains("交战") or text.contains("损失"):
+			pass
+		elif text.contains("增援"):
+			reinforce.append(text)
+		elif text.contains("支援") or text.contains("火力") or text.contains("空"):
+			support.append(text)
+		elif text.contains("桥梁") or text.contains("退却") or text.contains("突破"):
+			moves.append(text)
+		else:
+			other.append(text)
+	brief["flips"] = flips
+	brief["reinforcements"] = reinforce
+	brief["support"] = support
+	brief["notes"] = moves + other
+	brief["phase"] = str(_state.get("phase", "planning"))
+	brief["result"] = _state.get("result", {}).duplicate(true) if _state.get("result") is Dictionary else {}
+	return brief
+
+func set_show_turn_brief(on: bool) -> void:
+	show_turn_brief = on
+	notice.emit("结算简报已开启" if on else "结算简报已关闭")
 
 func _publish() -> void:
 	if _state.is_empty():

@@ -47,6 +47,8 @@ func _ready() -> void:
 	GameSession.view_changed.connect(_refresh)
 	GameSession.notice.connect(_notice)
 	GameSession.lobby_changed.connect(_lobby_refresh)
+	if GameSession.has_signal("turn_resolved"):
+		GameSession.turn_resolved.connect(_on_turn_resolved)
 	_refresh()
 	call_deferred("_smoke")
 
@@ -867,7 +869,7 @@ func _reports() -> void:
 	_dialog("战报 / AFTER ACTION REPORT",text)
 
 func _rules() -> void:
-	_dialog("指挥手册", "[font_size=25]在不确定中作出决定[/font_size]\n\n[color=#c6aa6d]01  阅读战场[/color]\n六角格代表固定公里数，每回合代表战役设定的小时数。地形、道路、河流和桥梁影响通行与战斗。金色圆环是计分目标；蓝、红算子代表不同阵营。\n\n[color=#c6aa6d]02  编排命令[/color]\n点击本方单位，选择机动、进攻或侦察，再点击目标格。固守、休整和预备直接作用于当前格。可选择谨慎、均衡或积极姿态。命令会持续执行，可在锁定前修改。同格堆叠单位可重复点击切换，也可从战斗序列选择。\n\n[color=#c6aa6d]03  同时结算 / WEGO[/color]\n双方分别下令并锁定，随后统一推进六个战术时段。敌军不会等待你的单位行动完毕。交战、退却、疲劳、弹药与燃料消耗均在结算中处理。\n\n[color=#c6aa6d]04  指挥与补给[/color]\n不要只看兵力。组织度、疲劳、燃料和弹药决定部队能否继续作战。总部距离、补给路线、补给吞吐量与时代能力会影响执行。使用补给图层查看本方枢纽，保护道路与后勤。\n\n[color=#c6aa6d]05  不完全情报[/color]\n只能查询本方详细状态及已观察到的敌军。问号是历史接触，未必代表敌军仍在原地。炮火、空援与战役侦察通过单位档案中的支援按钮指定目标。\n\n[color=#c6aa6d]06  操作与模式[/color]\n拖动地图平移，滚轮缩放；Esc 取消正在指定的命令。同机轮换时由交接遮罩保护双方信息。局域网由主机裁定状态。观战模式点击推进回合观看双方 AI。回放箭头读取历史快照。\n\n[color=#c6aa6d]07  键盘操作[/color]\n1–8：机动/进攻/固守/休整/侦察/预备/撤退/工程；C：锁定回合；Tab：下一单位；Shift+Tab：下一未下令单位；Backspace：撤销选中单位命令；Shift+Backspace：清空本回合命令；WASD/方向键：平移地图；+ / −：缩放。\n\n[color=#c6aa6d]08  控制区与预估[/color]\n敌方战斗单位周围一格为控制区（「控制区」图层红晕），进入后本回合停止机动。进攻悬停会给出赔率与接触面提示；路径预估会标明控制区停步与堆叠已满。\n\n每个剧本含独立史料与设计说明；地图、兵力强度和计分机制属于可玩性设计，不等同于历史统计。",Vector2i(780,680))
+	_dialog("指挥手册", "[font_size=25]在不确定中作出决定[/font_size]\n\n完整手册见仓库 docs/PLAYER_GUIDE.md。\n\n[color=#c6aa6d]01  阅读战场[/color]\n六角格代表固定公里数，每回合代表战役设定的小时数。地形、道路、河流和桥梁影响通行与战斗。金色圆环是计分目标；蓝、红算子代表不同阵营。\n\n[color=#c6aa6d]02  编排命令[/color]\n点击本方单位，选择机动、进攻或侦察，再点击目标格。固守、休整和预备直接作用于当前格。可选择谨慎、均衡或积极姿态。命令会持续执行，可在锁定前修改。同格堆叠单位可重复点击切换，也可从战斗序列选择。\n\n[color=#c6aa6d]03  同时结算 / WEGO[/color]\n双方分别下令并锁定，随后统一推进六个战术时段。敌军不会等待你的单位行动完毕。交战、退却、疲劳、弹药与燃料消耗均在结算中处理。结算后会弹出战役简报。\n\n[color=#c6aa6d]04  指挥与补给[/color]\n不要只看兵力。组织度、疲劳、燃料和弹药决定部队能否继续作战。总部距离、补给路线、补给吞吐量与时代能力会影响执行。使用补给图层查看本方枢纽，保护道路与后勤。\n\n[color=#c6aa6d]05  不完全情报[/color]\n只能查询本方详细状态及已观察到的敌军。问号是历史接触，未必代表敌军仍在原地。炮火、空援与战役侦察通过单位档案中的支援按钮指定目标。\n\n[color=#c6aa6d]06  操作与模式[/color]\n拖动地图平移，滚轮缩放；Esc 取消正在指定的命令。同机轮换时由交接遮罩保护双方信息。局域网由主机裁定状态。观战模式点击推进回合观看双方 AI。回放箭头读取历史快照。\n\n[color=#c6aa6d]07  键盘操作[/color]\n1–8：机动/进攻/固守/休整/侦察/预备/撤退/工程；C：锁定回合；Tab：下一单位；Shift+Tab：下一未下令单位；Backspace：撤销选中单位命令；Shift+Backspace：清空本回合命令；WASD/方向键：平移地图；+ / −：缩放。\n\n[color=#c6aa6d]08  控制区与预估[/color]\n敌方战斗单位周围一格为控制区（「控制区」图层红晕），进入后本回合停止机动。进攻悬停会给出赔率与接触面提示；路径预估会标明控制区停步与堆叠已满。\n\n每个剧本含独立史料与设计说明；地图、兵力强度和计分机制属于可玩性设计，不等同于历史统计。",Vector2i(780,680))
 
 func _sources(scenario: Dictionary) -> void:
 	var text = "[font_size=23]%s[/font_size]\n\n" % scenario.get("title","")
@@ -903,6 +905,7 @@ func _game_menu() -> void:
 		diff_row.add_child(_button(str(lv),func(): GameSession.set_ai_difficulty(lv)))
 	if GameSession.mode == "observer":
 		list.add_child(_button("暂停/继续推演",func(): GameSession.commit_turn(); dialog.queue_free()))
+	list.add_child(_button(("关闭" if GameSession.show_turn_brief else "开启") + "结算简报",func(): GameSession.set_show_turn_brief(not GameSession.show_turn_brief); dialog.queue_free()))
 	list.add_child(_button("指挥手册",func(): dialog.queue_free(); _rules()))
 	if GameSession.has_method("agent_config_path"):
 		list.add_child(_button("Agent 连接配置",func(): _dialog("Agent 接入", "连接配置保存在本机文件，供受信任的 MCP 客户端使用：\n\n" + str(GameSession.agent_config_path()) + "\n\nAgent 对战模式：本地指挥一方，外部 Agent 控制另一方。实际 Agent 对局需要单独接入客户端。")))
@@ -978,6 +981,137 @@ func _lan_dialog() -> void:
 	dialog.popup_centered()
 	dialog.confirmed.connect(dialog.queue_free)
 	dialog.canceled.connect(dialog.queue_free)
+
+func _on_turn_resolved(brief: Dictionary) -> void:
+	if brief.is_empty():
+		return
+	# Skip while replaying or during smoke.
+	if bool(GameSession.view.get("replay_active", false)):
+		return
+	_show_turn_brief(brief)
+
+func _show_turn_brief(brief: Dictionary) -> void:
+	if has_node("/root/GameAudio"):
+		get_node("/root/GameAudio").play("turn")
+	var veil = ColorRect.new()
+	veil.color = Color(0.06, 0.1, 0.1, 0.72)
+	veil.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	veil.name = "TurnBriefVeil"
+	add_child(veil)
+	var center = CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	veil.add_child(center)
+	var card = PanelContainer.new()
+	card.custom_minimum_size = Vector2(640, 420)
+	card.add_theme_stylebox_override("panel", _box(Color("152c2c"), 10, Color("c6aa6d")))
+	center.add_child(card)
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 10)
+	card.add_child(vbox)
+
+	var top = HBoxContainer.new()
+	vbox.add_child(top)
+	var title = _label("战役结算", 28, GOLD)
+	top.add_child(title)
+	_spacer(top)
+	var weather_cn = {"clear":"晴朗","rain":"降雨","snow":"降雪","fog":"浓雾","overcast":"阴天","storm":"风暴","night":"夜暗"}.get(str(brief.get("weather","clear")), str(brief.get("weather","")))
+	top.add_child(_label("第 %s 回合 · %s" % [brief.get("turn"), weather_cn], 14, MUTED))
+
+	var scores = brief.get("scores", [0, 0])
+	var delta = brief.get("score_delta", [0, 0])
+	var score_line = HBoxContainer.new()
+	vbox.add_child(score_line)
+	score_line.add_child(_label("积分  %s : %s" % [scores[0], scores[1]], 20, PAPER))
+	_spacer(score_line)
+	var d0 = int(delta[0])
+	var d1 = int(delta[1])
+	var delta_text = ""
+	if d0 != 0 or d1 != 0:
+		delta_text = "本回合变化  %s%d : %s%d" % ["+" if d0 > 0 else "", d0, "+" if d1 > 0 else "", d1]
+	else:
+		delta_text = "本回合无积分变化"
+	score_line.add_child(_label(delta_text, 13, GOLD if (d0 != 0 or d1 != 0) else MUTED))
+
+	var scroll = ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(600, 280)
+	vbox.add_child(scroll)
+	var lines = VBoxContainer.new()
+	lines.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lines.add_theme_constant_override("separation", 6)
+	scroll.add_child(lines)
+
+	var reveal: Array = []
+	reveal.append(_brief_section_header(lines, "交战"))
+	var fights: Array = brief.get("fights", [])
+	if fights.is_empty():
+		reveal.append(_brief_line(lines, "本回合没有发生交火。", MUTED))
+	else:
+		for row in fights.slice(0, 10):
+			reveal.append(_brief_line(lines, "%s · 交火 %s 次 · 损失 %.1f" % [row.get("name"), row.get("fights"), float(row.get("loss", 0))], PAPER))
+	var flips: Array = brief.get("flips", [])
+	if not flips.is_empty():
+		reveal.append(_brief_section_header(lines, "目标易手"))
+		for line in flips:
+			reveal.append(_brief_line(lines, str(line), GOLD))
+	var support: Array = brief.get("support", [])
+	if not support.is_empty():
+		reveal.append(_brief_section_header(lines, "火力支援"))
+		for line in support.slice(0, 6):
+			reveal.append(_brief_line(lines, str(line), MUTED))
+	var rein: Array = brief.get("reinforcements", [])
+	if not rein.is_empty():
+		reveal.append(_brief_section_header(lines, "增援"))
+		for line in rein:
+			reveal.append(_brief_line(lines, str(line), Color("8fa378")))
+	var notes: Array = brief.get("notes", [])
+	if not notes.is_empty():
+		reveal.append(_brief_section_header(lines, "战场动态"))
+		for line in notes.slice(0, 8):
+			reveal.append(_brief_line(lines, str(line), MUTED))
+	if str(brief.get("phase", "")) == "finished":
+		var result = brief.get("result", {})
+		reveal.append(_brief_section_header(lines, "战役结束"))
+		reveal.append(_brief_line(lines, "结果：%s" % result.get("reason", "达到时限"), GOLD))
+
+	var footer = HBoxContainer.new()
+	vbox.add_child(footer)
+	_spacer(footer)
+	var hint = _label("信息按行展开 · 关闭后可继续指挥", 11, MUTED)
+	footer.add_child(hint)
+	var close = _button("继续指挥", func():
+		veil.queue_free()
+	)
+	close.custom_minimum_size = Vector2(140, 40)
+	close.add_theme_stylebox_override("normal", _box(Color("a08954"), 5, Color("d7bc7e")))
+	close.add_theme_color_override("font_color", Color("122c2b"))
+	footer.add_child(close)
+	veil.gui_input.connect(func(event):
+		if event is InputEventMouseButton and event.pressed:
+			veil.queue_free()
+	)
+
+	# Stagger reveal for a briefing feel without blocking input.
+	for i in range(reveal.size()):
+		var node = reveal[i]
+		if not is_instance_valid(node):
+			continue
+		node.modulate.a = 0.0
+		var delay = 0.05 + i * 0.045
+		var tween = create_tween()
+		tween.tween_interval(delay)
+		tween.tween_property(node, "modulate:a", 1.0, 0.18)
+
+func _brief_section_header(parent: Node, text: String) -> Label:
+	var l = _label(text, 12, GOLD)
+	parent.add_child(l)
+	return l
+
+func _brief_line(parent: Node, text: String, color: Color) -> Label:
+	var l = _label("· " + text, 13, color)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	parent.add_child(l)
+	return l
 
 func _handoff() -> void:
 	var curtain = PanelContainer.new()

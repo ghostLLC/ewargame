@@ -8,6 +8,10 @@ Windows 中文 2D 六角格作战级兵棋。WEGO 秘密同时下令，确定性
 - 可选：Node.js 20+（MCP 桥 `bridge/server.mjs`）
 - 可选：Python 3.10+（仅剧本生成与校验，标准库）
 
+## 玩家手册
+
+完整教程与规则见 **`docs/PLAYER_GUIDE.md`**（请随功能同步维护）。游戏内「指挥手册」为精简版。
+
 ## 目录
 
 | 路径 | 职责 |
