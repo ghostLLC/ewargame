@@ -558,6 +558,8 @@ func _inspect_unit() -> void:
 	var orders = GameSession.view.get("orders",{})
 	var current: Dictionary = orders.get(selected_id,{}) if orders is Dictionary else {}
 	inspector.add_child(_label("当前命令  " + str(ORDERS.get(str(current.get("kind","defend")),"固守")),12,GOLD))
+	if not current.is_empty() and not GameSession.view.get("ready",[false,false])[int(GameSession.view.get("side",0))]:
+		inspector.add_child(_button("撤销本单位命令",func(): GameSession.clear_unit_order(selected_id); _refresh(),"仅清除选中单位本回合命令（Backspace）"))
 	if unit.has("supply"):
 		var supply = float(unit.get("supply", 1.0))
 		var supply_cn = "充足" if supply >= 0.7 else ("紧张" if supply >= 0.4 else "断绝")
@@ -784,6 +786,17 @@ func _reports() -> void:
 		var owner = int(objective.get("owner", -1))
 		var owner_txt = "中立" if owner < 0 else side_names[owner]
 		text += "· %s  %s 分  ·  控制：%s\n" % [objective.get("name",""), objective.get("value",0), owner_txt]
+	text += "\n[color=#c6aa6d]目标易手[/color]\n"
+	var flips = []
+	for event in view.get("logs", []):
+		var line = str(event)
+		if line.contains("控制") and line.contains("由"):
+			flips.append(line)
+	if flips.is_empty():
+		text += "暂无易手记录。\n"
+	else:
+		for line in flips.slice(maxi(0, flips.size() - 12)):
+			text += "· " + line + "\n"
 	var alive = [0, 0]
 	var org_sum = [0.0, 0.0]
 	for unit in view.get("units", []):
@@ -991,6 +1004,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		return
 	if event.keycode == KEY_BACKSPACE and event.shift_pressed:
 		GameSession.clear_orders()
+		_refresh()
+		return
+	if event.keycode == KEY_BACKSPACE and not selected_id.is_empty():
+		GameSession.clear_unit_order(selected_id)
 		_refresh()
 		return
 	if event.keycode == KEY_TAB:
