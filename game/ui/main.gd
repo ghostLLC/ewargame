@@ -344,6 +344,11 @@ func _build_menu() -> void:
 	begin.add_theme_stylebox_override("normal",_box(Color("a08954"),5,Color("d7bc7e")))
 	begin.add_theme_color_override("font_color",Color("122c2b"))
 	config.add_child(begin)
+	var brief = str(chosen.get("brief_goals", ""))
+	if brief != "":
+		var brief_label = _label("简报：" + brief,11,MUTED)
+		brief_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		config.add_child(brief_label)
 	config.add_child(_button("局域网联机",_lan_dialog))
 	config.add_child(_button("史料与设计说明",func(): _sources(chosen)))
 	var note = _label("WEGO：双方锁定命令后统一结算。\n敌军强度与命令受战争迷雾限制。",11,MUTED)
@@ -671,6 +676,16 @@ func _build_roster() -> void:
 func _select_unit(id: String) -> void:
 	if not pending_order.is_empty(): return
 	selected_id = id
+	preview_path = []
+	if is_instance_valid(canvas):
+		canvas.preview_path = []
+		for unit in GameSession.view.get("units", []):
+			if str(unit.get("id","")) == id:
+				var rad = canvas._base_radius() * canvas.zoom_level
+				var at = canvas._center(int(unit.get("q",0)), int(unit.get("r",0)))
+				canvas.pan = canvas.size * 0.5 - at
+				saved_pan = canvas.pan
+				break
 	_refresh()
 
 func _choose_order(kind: String) -> void:
@@ -717,6 +732,9 @@ func _target_hex(q: int, r: int) -> void:
 		result = GameSession.place_order(selected_id,pending_order,[q,r],stance)
 	if result.get("ok",false):
 		pending_order = ""
+		preview_path = []
+		if is_instance_valid(canvas):
+			canvas.preview_path = []
 		_notice("命令已记录，目标 %d, %d。锁定前可重新下令。" % [q,r])
 		_refresh()
 	else:
@@ -849,7 +867,7 @@ func _reports() -> void:
 	_dialog("战报 / AFTER ACTION REPORT",text)
 
 func _rules() -> void:
-	_dialog("指挥手册", "[font_size=25]在不确定中作出决定[/font_size]\n\n[color=#c6aa6d]01  阅读战场[/color]\n六角格代表固定公里数，每回合代表战役设定的小时数。地形、道路、河流和桥梁影响通行与战斗。金色圆环是计分目标；蓝、红算子代表不同阵营。\n\n[color=#c6aa6d]02  编排命令[/color]\n点击本方单位，选择机动、进攻或侦察，再点击目标格。固守、休整和预备直接作用于当前格。可选择谨慎、均衡或积极姿态。命令会持续执行，可在锁定前修改。同格堆叠单位可重复点击切换，也可从战斗序列选择。\n\n[color=#c6aa6d]03  同时结算 / WEGO[/color]\n双方分别下令并锁定，随后统一推进六个战术时段。敌军不会等待你的单位行动完毕。交战、退却、疲劳、弹药与燃料消耗均在结算中处理。\n\n[color=#c6aa6d]04  指挥与补给[/color]\n不要只看兵力。组织度、疲劳、燃料和弹药决定部队能否继续作战。总部距离、补给路线、补给吞吐量与时代能力会影响执行。使用补给图层查看本方枢纽，保护道路与后勤。\n\n[color=#c6aa6d]05  不完全情报[/color]\n只能查询本方详细状态及已观察到的敌军。问号是历史接触，未必代表敌军仍在原地。炮火、空援与战役侦察通过单位档案中的支援按钮指定目标。\n\n[color=#c6aa6d]06  操作与模式[/color]\n拖动地图平移，滚轮缩放；Esc 取消正在指定的命令。同机轮换时由交接遮罩保护双方信息。局域网由主机裁定状态。观战模式点击推进回合观看双方 AI。回放箭头读取历史快照。\n\n[color=#c6aa6d]07  键盘操作[/color]\n1–8：机动/进攻/固守/休整/侦察/预备/撤退/工程；C：锁定回合；Tab：下一单位；Shift+Backspace：清空本回合命令；WASD/方向键：平移地图；+ / −：缩放。\n\n[color=#c6aa6d]08  控制区与预估[/color]\n敌方战斗单位周围一格为控制区（「控制区」图层红晕），进入后本回合停止机动。进攻悬停会给出赔率与接触面提示；路径预估会标明控制区停步与堆叠已满。\n\n每个剧本含独立史料与设计说明；地图、兵力强度和计分机制属于可玩性设计，不等同于历史统计。",Vector2i(780,680))
+	_dialog("指挥手册", "[font_size=25]在不确定中作出决定[/font_size]\n\n[color=#c6aa6d]01  阅读战场[/color]\n六角格代表固定公里数，每回合代表战役设定的小时数。地形、道路、河流和桥梁影响通行与战斗。金色圆环是计分目标；蓝、红算子代表不同阵营。\n\n[color=#c6aa6d]02  编排命令[/color]\n点击本方单位，选择机动、进攻或侦察，再点击目标格。固守、休整和预备直接作用于当前格。可选择谨慎、均衡或积极姿态。命令会持续执行，可在锁定前修改。同格堆叠单位可重复点击切换，也可从战斗序列选择。\n\n[color=#c6aa6d]03  同时结算 / WEGO[/color]\n双方分别下令并锁定，随后统一推进六个战术时段。敌军不会等待你的单位行动完毕。交战、退却、疲劳、弹药与燃料消耗均在结算中处理。\n\n[color=#c6aa6d]04  指挥与补给[/color]\n不要只看兵力。组织度、疲劳、燃料和弹药决定部队能否继续作战。总部距离、补给路线、补给吞吐量与时代能力会影响执行。使用补给图层查看本方枢纽，保护道路与后勤。\n\n[color=#c6aa6d]05  不完全情报[/color]\n只能查询本方详细状态及已观察到的敌军。问号是历史接触，未必代表敌军仍在原地。炮火、空援与战役侦察通过单位档案中的支援按钮指定目标。\n\n[color=#c6aa6d]06  操作与模式[/color]\n拖动地图平移，滚轮缩放；Esc 取消正在指定的命令。同机轮换时由交接遮罩保护双方信息。局域网由主机裁定状态。观战模式点击推进回合观看双方 AI。回放箭头读取历史快照。\n\n[color=#c6aa6d]07  键盘操作[/color]\n1–8：机动/进攻/固守/休整/侦察/预备/撤退/工程；C：锁定回合；Tab：下一单位；Shift+Tab：下一未下令单位；Backspace：撤销选中单位命令；Shift+Backspace：清空本回合命令；WASD/方向键：平移地图；+ / −：缩放。\n\n[color=#c6aa6d]08  控制区与预估[/color]\n敌方战斗单位周围一格为控制区（「控制区」图层红晕），进入后本回合停止机动。进攻悬停会给出赔率与接触面提示；路径预估会标明控制区停步与堆叠已满。\n\n每个剧本含独立史料与设计说明；地图、兵力强度和计分机制属于可玩性设计，不等同于历史统计。",Vector2i(780,680))
 
 func _sources(scenario: Dictionary) -> void:
 	var text = "[font_size=23]%s[/font_size]\n\n" % scenario.get("title","")
@@ -1015,6 +1033,16 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		for unit in GameSession.view.get("units", []):
 			if int(unit.get("side",-1)) == int(GameSession.view.get("side",0)):
 				units.append(str(unit.get("id","")))
+		if event.shift_pressed:
+			var orders = view_orders()
+			var pending_units = []
+			for uid in units:
+				if not orders.has(uid):
+					pending_units.append(uid)
+			if not pending_units.is_empty():
+				var cur = pending_units.find(selected_id)
+				_select_unit(pending_units[(cur + 1) % pending_units.size()])
+				return
 		if not units.is_empty():
 			var cur = units.find(selected_id)
 			_select_unit(units[(cur + 1) % units.size()])

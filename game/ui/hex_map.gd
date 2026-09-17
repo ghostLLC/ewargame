@@ -204,6 +204,15 @@ func _draw_orders(rad: float) -> void:
 		var last = pts[pts.size()-1]
 		var dir = (pts[pts.size()-1]-pts[pts.size()-2]).normalized()
 		draw_colored_polygon(PackedVector2Array([last,last+dir.rotated(0.42)*rad*0.42,last+dir.rotated(-0.42)*rad*0.42]),Color("b79953"))
+	var support = observation.get("support", {})
+	if support is Dictionary and not support.is_empty():
+		var st = support.get("target", [])
+		if st is Array and st.size() == 2:
+			var at = _center(int(st[0]), int(st[1]))
+			var kind = str(support.get("kind", ""))
+			var col = Color("a35745") if kind == "artillery" else Color("576f6a") if kind == "air" else Color("b39a5e")
+			draw_arc(at, rad * 0.7, 0, TAU, 24, col, 2.4, true)
+			_label(at + Vector2(0, -rad * 0.9), {"artillery":"炮火","air":"空援","recon":"侦察"}.get(kind, kind), col, 11)
 	# supply paths when overlay supply
 	if overlay == "supply":
 		for unit in observation.get("units", []):

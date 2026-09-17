@@ -141,6 +141,16 @@ func _apply_order(side: int, order: Dictionary) -> Dictionary:
 		return _fail("回合已经锁定或战役已经结束")
 	var result: Dictionary = _engine.submit_order(_state, side, order)
 	if result.get("ok", false):
+		if str(order.get("kind","")) in ["move","attack","retreat","recon"] and not order.get("target", []).is_empty():
+			var unit = null
+			for u in _state.units:
+				if str(u.get("id","")) == str(order.get("unit_id","")):
+					unit = u
+					break
+			if unit != null:
+				var path = _engine.preview_move(_state, str(order.unit_id), order.target)
+				if path is Dictionary and not path.get("ok", false):
+					notice.emit("警告：目标可能不可达（无可行路径）")
 		_publish()
 	else:
 		notice.emit(str(result.get("error", "命令无效")))
