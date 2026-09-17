@@ -503,10 +503,16 @@ static func _path(state: Dictionary, unit: Dictionary, target: Array) -> Array:
 static func _search(state: Dictionary, unit: Dictionary, target: Array, supply: bool) -> Array:
 	var start = _pos(unit)
 	var frontier = [start]
+	var in_frontier = {_key(start): true}
+	var closed = {}
 	var costs = {_key(start): 0.0}
 	var previous = {}
 	var max_range = float(_rules(state).supply_range)
+	var guard = 0
 	while not frontier.is_empty():
+		guard += 1
+		if guard > 4000:
+			return []
 		var best_index = 0
 		var best_value = INF
 		for index in range(frontier.size()):
@@ -517,6 +523,10 @@ static func _search(state: Dictionary, unit: Dictionary, target: Array, supply: 
 				best_value = value
 				best_index = index
 		var current: Array = frontier.pop_at(best_index)
+		in_frontier.erase(_key(current))
+		if closed.has(_key(current)):
+			continue
+		closed[_key(current)] = true
 		if current == target:
 			var route = [current]
 			while previous.has(_key(current)):
@@ -524,6 +534,9 @@ static func _search(state: Dictionary, unit: Dictionary, target: Array, supply: 
 				route.push_front(current)
 			return route
 		for next in _neighbors(current):
+			var nkey = _key(next)
+			if closed.has(nkey):
+				continue
 			var cost = _move_cost(state, unit, current, next)
 			if cost >= 999:
 				continue
@@ -535,11 +548,12 @@ static func _search(state: Dictionary, unit: Dictionary, target: Array, supply: 
 			var total = float(costs[_key(current)]) + cost
 			if supply and total > max_range:
 				continue
-			if total < float(costs.get(_key(next), INF)):
-				costs[_key(next)] = total
-				previous[_key(next)] = current
-				if not frontier.has(next):
+			if total < float(costs.get(nkey, INF)):
+				costs[nkey] = total
+				previous[nkey] = current
+				if not in_frontier.get(nkey, false):
 					frontier.append(next)
+					in_frontier[nkey] = true
 	return []
 
 static func _route_cost(state: Dictionary, path: Array) -> float:
@@ -859,6 +873,8 @@ static func ai_orders(state: Dictionary, side: int) -> Array:
 		return []
 	var orders = []
 	var assigned = {}
+	var focus_target = []
+	var focus_count = 0
 	for unit in view.units:
 		if unit.side != side:
 			continue
@@ -940,6 +956,14 @@ static func ai_orders(state: Dictionary, side: int) -> Array:
 					target = _pos(nearest)
 				var aggro = 60 if difficulty == "hard" else 80 if difficulty == "easy" else 70
 				stance = "aggressive" if unit.organization > aggro else "balanced"
+				if difficulty == "hard" and focus_count < 2:
+					focus_target = target.duplicate()
+					focus_count += 1
+			elif difficulty == "hard" and focus_count > 0 and not focus_target.is_empty() and unit.type in ["armor", "mechanized", "infantry", "motorized"] and _distance(_pos(unit), focus_target) <= 3 and float(unit.organization) >= 45:
+				kind = "attack"
+				target = focus_target.duplicate()
+				stance = "aggressive"
+				focus_count += 1
 			elif difficulty == "hard" and not weak.is_empty() and weak_d <= 3 and unit.type in ["armor", "mechanized", "infantry", "motorized"]:
 				kind = "attack"
 				target = _pos(weak)

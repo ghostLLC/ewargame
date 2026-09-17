@@ -387,8 +387,11 @@ func _build_game() -> void:
 	filters.add_child(_label("态势",12,Color("47594d")))
 	for entry in [["terrain","地形"],["control","控制"],["zoc","控制区"],["supply","补给"]]:
 		var key = entry[0]
-		var button = _button(entry[1],func(): overlay_mode = key; canvas.overlay = key; canvas.queue_redraw())
+		var button = _button(entry[1],func(): overlay_mode = key; canvas.overlay = key; canvas.queue_redraw(); _refresh(), "切换地图图层：" + entry[1])
 		button.custom_minimum_size.y = 28
+		if overlay_mode == key:
+			button.add_theme_stylebox_override("normal",_box(Color("a08954"),5,Color("d7bc7e")))
+			button.add_theme_color_override("font_color",Color("122c2b"))
 		filters.add_child(button)
 	_spacer(filters)
 	filters.add_child(_button("−",func(): canvas.zoom_level = maxf(0.65,canvas.zoom_level/1.15); canvas.queue_redraw(),"缩小地图"))
@@ -408,7 +411,7 @@ func _build_game() -> void:
 	canvas.hex_hovered.connect(_on_hex_hovered)
 	var legend_bar = HBoxContainer.new()
 	map_column.add_child(legend_bar)
-	legend_bar.add_child(_label("蓝 / 红：阵营    金环：战略目标    虚线：本方命令    红晕：敌控制区    ?：历史接触",11,MUTED))
+	legend_bar.add_child(_label("蓝/红阵营 · 金环目标 · 虚线命令 · 红晕控制区 · ?接触 · 同格上限 3",11,MUTED))
 	_spacer(legend_bar)
 	legend_bar.add_child(_label("拖动平移 · 滚轮缩放",11,MUTED))
 	var side_scroll = ScrollContainer.new()
