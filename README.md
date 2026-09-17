@@ -2,6 +2,8 @@
 
 Windows 中文 2D 六角格作战级兵棋。WEGO 秘密同时下令，确定性裁决；人机 / 热座 / 局域网 / 观察模式；本地 MCP 桥可供 Agent 代打一方（本版不要求真实 Agent 整局验收）。
 
+**License:** MIT（见 [LICENSE](LICENSE)）。字体 Noto Sans SC 为 SIL OFL 1.1（`game/assets/fonts/OFL.txt`）。
+
 ## 需要
 
 - Godot **4.7.2**（仓库 `tools/godot/` 已有官方 Windows 构建时可直接用）
