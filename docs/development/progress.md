@@ -39,6 +39,14 @@ Preflight interfaces: Core -> Content uses exact scenario schema; Core -> Sessio
 - No live Agent full match (excluded)
 - Smoke helper scripts excluded from export preset
 
+## 2026-09-16 — improvement loop (codex/first-playable)
+
+Iterative explore→implement passes through `a524d24`. Practical single-player feature/UX backlog exhausted (independent review). Notable additions across batches:
+- Live control + ZOC layer, path/combat estimates, capture scoring, incremental UI
+- AI support/recon/supply/engineer/focus, pathfinding closed set
+- Reports: score timeline, losses, flips, combat summaries; AAR header
+- Hotkeys, clear/undo orders, UI scale, icon/SFX/CI/packaging (earlier)
+
 ## 2026-09-16 — polish pass (worktree `codex/content-fix`)
 
 - Replay timeline slider + jump; after-action report export (`user://after_action_report.txt`)
