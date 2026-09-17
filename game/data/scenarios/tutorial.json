@@ -11,6 +11,9 @@
   "turn_hours": 4,
   "max_turns": 6,
   "seed": 7,
+  "difficulty": "easy",
+  "unit_count": 11,
+  "brief_goals": "1) 熟悉选中与下令；2) 夺取河谷集镇与东岸要点；3) 观察同时结算。",
   "sides": [
     {
       "name": "蓝方",

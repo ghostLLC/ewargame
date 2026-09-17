@@ -267,7 +267,7 @@ func replay_goto(index: int) -> void:
 
 func export_after_action() -> String:
 	var scenario_title = str(_state.get("scenario", {}).get("title", "战役")) if not _state.is_empty() else "战役"
-	var lines = ["战线 · 战役指挥 — 战后报告", "剧本：" + scenario_title, ""]
+	var lines = ["战线 · 战役指挥 — 战后报告", "剧本：%s（%s）" % [scenario_title, str(_state.get("scenario", {}).get("id", ""))], "对局参数：模式 %s · 难度 %s · 种子 %s" % [mode, ai_difficulty, _state.get("seed", "?")], ""]
 	if not _state.is_empty():
 		lines.append("最终回合：%s / %s" % [_state.get("turn"), _state.get("scenario", {}).get("max_turns", "?")])
 		lines.append("积分：%s : %s" % [_state.get("scores", [0, 0])[0], _state.get("scores", [0, 0])[1]])

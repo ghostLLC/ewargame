@@ -11,6 +11,9 @@
   "turn_hours": 6,
   "max_turns": 12,
   "seed": 910225,
+  "difficulty": "standard",
+  "unit_count": 17,
+  "brief_goals": "突破筑垒带，解放科威特城与机场。",
   "sides": [
     {
       "name": "联军",

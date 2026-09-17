@@ -11,6 +11,9 @@
   "turn_hours": 6,
   "max_turns": 12,
   "seed": 440725,
+  "difficulty": "standard",
+  "unit_count": 17,
+  "brief_goals": "突破圣洛—马里尼，封堵装甲预备队。",
   "sides": [
     {
       "name": "美军",

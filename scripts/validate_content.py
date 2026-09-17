@@ -240,6 +240,9 @@ def scenario_shell(
         "turn_hours": turn_hours,
         "max_turns": max_turns,
         "seed": seed,
+        "difficulty": extra.get("difficulty", "standard") if extra else "standard",
+        "unit_count": len(units),
+        "brief_goals": (extra or {}).get("brief_goals", description),
         "sides": [
             {"name": side0, "color": color0},
             {"name": side1, "color": color1},
@@ -782,6 +785,7 @@ def build_tutorial() -> dict:
         "4) 为炮兵分配支援；5) 锁定命令，观察同时结算与补给变化。",
         "蓝方", "#587B8D", "红方", "#C5523A",
         tiles, blue + red, objectives, depots, "tutorial", design_notes=note,
+        extra={"difficulty": "easy", "brief_goals": "1) 熟悉选中与下令；2) 夺取河谷集镇与东岸要点；3) 观察同时结算。"},
     )
 
 
@@ -804,6 +808,7 @@ def build_normandy_bridgehead() -> dict:
         "盟军自犹他滩头经堤道打通出口并夺取内陆要点；德军依托湿地与博卡日迟滞。本关编制限于 6 月 6 日前后犹他/科唐坦方向公开番号（不含 7 月才上岸的装甲师）。",
         "美军", "#587B8D", "德军", "#C5523A",
         tiles, us + de, objectives, depots, "normandy_utm",
+        extra={"difficulty": "standard", "brief_goals": "打通堤道出口，夺取圣梅尔埃格利斯与卡朗唐。"},
     )
 
 
@@ -832,7 +837,7 @@ def build_normandy_breakout() -> dict:
                 "unit": formation("装甲预备队加强连", "armor", "battalion", 1, 28, 12, idx=40, strength=85, organization=90),
             }
         ],
-        extra={"weather": "clear", "night_cycle": False, "weather_cycle": True, "weather_schedule": ["clear", "overcast", "rain", "clear", "overcast", "clear", "fog", "clear", "clear", "overcast", "clear", "clear"]},
+        extra={"weather": "clear", "night_cycle": False, "weather_cycle": True, "weather_schedule": ["clear", "overcast", "rain", "clear", "overcast", "clear", "fog", "clear", "clear", "overcast", "clear", "clear"], "difficulty": "standard", "brief_goals": "突破圣洛—马里尼，封堵装甲预备队。"},
     )
 
 
@@ -863,7 +868,7 @@ def build_sinai() -> dict:
                 "unit": formation("增援装甲旅", "armor", "brigade", 0, 28, 9, idx=40, strength=92, organization=88),
             }
         ],
-        extra={"weather": "clear", "night_cycle": True, "start_hour": 6, "weather_cycle": True, "weather_schedule": ["clear", "clear", "overcast", "clear", "night", "clear", "fog", "clear"]},
+        extra={"weather": "clear", "night_cycle": True, "start_hour": 6, "weather_cycle": True, "weather_schedule": ["clear", "clear", "overcast", "clear", "night", "clear", "fog", "clear"], "difficulty": "hard", "brief_goals": "反击运河桥头，第 3 回合装甲增援。"},
     )
 
 
@@ -892,7 +897,7 @@ def build_golan() -> dict:
                 "unit": formation("预备装甲营", "armor", "battalion", 0, 21, 14, idx=40, strength=90, organization=85),
             }
         ],
-        extra={"weather": "clear", "night_cycle": False, "weather_cycle": True, "weather_schedule": ["clear", "clear", "overcast", "clear", "fog", "clear", "clear", "overcast", "clear", "clear", "clear", "clear"]},
+        extra={"weather": "clear", "night_cycle": False, "weather_cycle": True, "weather_schedule": ["clear", "clear", "overcast", "clear", "fog", "clear", "clear", "overcast", "clear", "clear", "clear", "clear"], "difficulty": "hard", "brief_goals": "守住泪谷与库奈特拉，等第 2 回合预备装甲营。"},
     )
 
 
@@ -915,7 +920,7 @@ def build_gulf_west() -> dict:
         "第 VII 军与第 XVIII 空降军自西侧实施纵深勾拳，越过瓦迪巴廷并夺取共和卫队防御要点；伊军保持交通线并组织纵深防御。",
         "多国部队", "#587B8D", "伊拉克军", "#C5523A",
         tiles, coal + irq, objectives, depots, "gulf",
-        extra={"weather": "clear", "night_cycle": False, "weather_cycle": True, "weather_schedule": ["clear", "clear", "clear", "overcast", "clear", "storm", "clear", "clear", "overcast", "clear", "clear", "clear"]},
+        extra={"weather": "clear", "night_cycle": False, "weather_cycle": True, "weather_schedule": ["clear", "clear", "clear", "overcast", "clear", "storm", "clear", "clear", "overcast", "clear", "clear", "clear"], "difficulty": "standard", "brief_goals": "越过瓦迪巴廷，夺取 73 东区与诺福克。"},
     )
 
 
@@ -939,7 +944,7 @@ def build_gulf_kuwait() -> dict:
         "联军自南与西突破伊军筑垒带，沿海岸与北向通道解放科威特城；伊军延缓突破并保持退路。地图含海岸、城市与筑垒带抽象，与沙漠左钩拳的开阔机动明显不同。",
         "联军", "#587B8D", "伊拉克军", "#C5523A",
         tiles, coal + irq, objectives, depots, "kuwait",
-        extra={"weather": "clear", "night_cycle": False, "weather_cycle": True, "weather_schedule": ["clear", "overcast", "clear", "clear", "night", "clear", "clear", "overcast", "clear", "clear", "clear", "clear"]},
+        extra={"weather": "clear", "night_cycle": False, "weather_cycle": True, "weather_schedule": ["clear", "overcast", "clear", "clear", "night", "clear", "clear", "overcast", "clear", "clear", "clear", "clear"], "difficulty": "standard", "brief_goals": "突破筑垒带，解放科威特城与机场。"},
     )
 
 

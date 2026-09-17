@@ -11,6 +11,9 @@
   "turn_hours": 6,
   "max_turns": 12,
   "seed": 910224,
+  "difficulty": "standard",
+  "unit_count": 19,
+  "brief_goals": "越过瓦迪巴廷，夺取 73 东区与诺福克。",
   "sides": [
     {
       "name": "多国部队",

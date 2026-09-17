@@ -294,6 +294,11 @@ func _build_menu() -> void:
 		inside.add_child(subtitle)
 		var facts = "%s km / 格   ·   %s 小时 / 回合   ·   %s 回合" % [scenario.get("hex_km","—"),scenario.get("turn_hours","—"),scenario.get("max_turns","—")]
 		inside.add_child(_label(facts,11,MUTED))
+		var meta = "%s 单位" % scenario.get("unit_count", scenario.get("units", []).size())
+		var diff = str(scenario.get("difficulty", ""))
+		if diff != "":
+			meta += " · " + {"easy":"入门","standard":"标准","hard":"硬仗"}.get(diff, diff)
+		inside.add_child(_label(meta,11,MUTED))
 		var id = str(scenario.get("id",""))
 		inside.add_child(_button("已选战役   →" if active else "查看部署   →",func(): selected_scenario = id; _refresh()))
 	var config = _panel(body,PANEL,22)
@@ -554,8 +559,17 @@ func _inspect_unit() -> void:
 	var current: Dictionary = orders.get(selected_id,{}) if orders is Dictionary else {}
 	inspector.add_child(_label("当前命令  " + str(ORDERS.get(str(current.get("kind","defend")),"固守")),12,GOLD))
 	if unit.has("supply"):
-		inspector.add_child(_label("补给状态  %s" % unit.get("supply"),12,MUTED))
-	inspector.add_child(_label("状态  %s · 筑城 %.1f · 延迟 %s" % [str(unit.get("status","ready")), float(unit.get("entrenchment",0.0)), str(unit.get("command_delay",0))],11,MUTED))
+		var supply = float(unit.get("supply", 1.0))
+		var supply_cn = "充足" if supply >= 0.7 else ("紧张" if supply >= 0.4 else "断绝")
+		inspector.add_child(_label("补给状态  %s（%.0f%%）" % [supply_cn, supply * 100.0],12,MUTED))
+	var status_en = str(unit.get("status","ready"))
+	var status_cn = {"ready":"待命","moving":"机动中","engaged":"交战中","undersupplied":"补给不足","destroyed":"已损失"}.get(status_en, status_en)
+	var org = float(unit.get("organization", 100.0))
+	if org <= 1.0: org *= 100.0
+	var morale = "士气稳定"
+	if org < 25: morale = "接近溃退"
+	elif org < 45: morale = "动摇"
+	inspector.add_child(_label("状态  %s · %s · 筑城 %.1f · 延迟 %s" % [status_cn, morale, float(unit.get("entrenchment",0.0)), str(unit.get("command_delay",0))],11,MUTED))
 	if str(current.get("kind","")) == "attack" and current.get("target",[]) is Array and not current.get("target",[]).is_empty() and GameSession.has_method("estimate_combat"):
 		var tid = ""
 		var tx = int(current["target"][0])
@@ -601,21 +615,39 @@ func _inspect_unit() -> void:
 func _add_objectives(parent: Node) -> void:
 	parent.add_child(HSeparator.new())
 	parent.add_child(_label("战略目标",13,GOLD))
+	var side = int(GameSession.view.get("side", 0))
 	for objective in GameSession.view.get("objectives",[]):
-		parent.add_child(_label("○  %s     %s 分" % [objective.get("name","目标"),objective.get("value",1)],12,MUTED))
+		var owner = int(objective.get("owner", -1))
+		var mark = "○"
+		if owner == side:
+			mark = "●"
+		elif owner in [0, 1]:
+			mark = "◎"
+		parent.add_child(_label("%s  %s     %s 分" % [mark, objective.get("name","目标"), objective.get("value",1)],12,MUTED))
+
+func view_orders() -> Dictionary:
+	var orders = GameSession.view.get("orders", {})
+	return orders if orders is Dictionary else {}
 
 func _build_roster() -> void:
 	var units: Array = []
 	for unit in GameSession.view.get("units",[]):
 		if int(unit.get("side",-1)) == int(GameSession.view.get("side",0)): units.append(unit)
 	roster.add_child(_label("战斗序列   /   %02d 支单位" % units.size(),11,GOLD))
+	var orders_map = view_orders()
 	for unit in units:
 		var id = str(unit.get("id",""))
-		var b = _button("%s  %s" % ["›" if id == selected_id else "·",unit.get("name",id)],func(): _select_unit(id))
+		var kind = str(orders_map.get(id, {}).get("kind", ""))
+		var kind_short = {"move":"机动","attack":"进攻","defend":"固守","rest":"休整","recon":"侦察","reserve":"预备","retreat":"撤退","engineer":"工程"}.get(kind, "")
+		var mark = "›" if id == selected_id else "·"
+		var supply = float(unit.get("supply", 1.0))
+		var warn = "△" if supply < 0.45 else ""
+		var label = "%s %s%s%s" % [mark, unit.get("name", id), (" · " + kind_short) if kind_short != "" else "", warn]
+		var b = _button(label,func(): _select_unit(id))
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		b.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		b.custom_minimum_size.y = 31
-		b.tooltip_text = "%s · %s · 兵力 %s" % [unit.get("name",id),TYPES.get(str(unit.get("type","")),""),unit.get("strength","—")]
+		b.tooltip_text = "%s · %s · 兵力 %s · 补给 %s%s" % [unit.get("name",id),TYPES.get(str(unit.get("type","")),""),unit.get("strength","—"),supply,(" · " + kind_short) if kind_short != "" else ""]
 		roster.add_child(b)
 	var replay = HBoxContainer.new()
 	roster.add_child(replay)
@@ -738,6 +770,7 @@ func _reports() -> void:
 	var text = "[color=#c6aa6d]战役态势与行动记录[/color]\n\n"
 	var view: Dictionary = GameSession.view
 	text += "当前回合：%s   积分：%s · %s\n" % [view.get("turn",1), view.get("scores",[0,0])[0], view.get("scores",[0,0])[1]]
+	text += "模式 %s · 难度 %s · 剧本 %s\n" % [GameSession.mode, GameSession.ai_difficulty, view.get("scenario_id", view.get("title",""))]
 	var sides = view.get("sides", [])
 	if sides is Array and sides.size() >= 2:
 		text += "%s vs %s\n\n" % [sides[0].get("name","蓝"), sides[1].get("name","红")]

@@ -17,7 +17,7 @@ const ERA_DEFAULTS = {
 }
 
 static func new_game(scenario: Dictionary, seed: int = 42) -> Dictionary:
-	var state = {"version": 1, "scenario": scenario.duplicate(true), "units": [], "turn": 1, "orders": {}, "ready": [false, false], "scores": [0, 0], "phase": "planning", "weather": str(scenario.get("weather", "clear")), "objectives": scenario.get("objectives", []).duplicate(true), "logs": [], "contacts": {"0": {}, "1": {}}, "seed": seed, "support": {}, "result": {}, "control": {}, "reinforced": [], "events": []}
+	var state = {"version": 1, "scenario": scenario.duplicate(true), "units": [], "turn": 1, "orders": {}, "ready": [false, false], "scores": [0, 0], "phase": "planning", "weather": str(scenario.get("weather", "clear")), "objectives": scenario.get("objectives", []).duplicate(true), "logs": [], "contacts": {"0": {}, "1": {}}, "seed": seed, "support": {}, "result": {}, "control": {}, "reinforced": [], "events": [], "combat_summary": {}}
 	for raw in scenario.get("units", []):
 		state.units.append(_unit(raw))
 	for objective in state.objectives:
@@ -116,7 +116,7 @@ static func observe(state: Dictionary, side: int) -> Dictionary:
 	if side not in [0, 1]:
 		return {}
 	var scenario: Dictionary = state.scenario
-	var result = {"scenario_id": scenario.get("id", ""), "title": scenario.get("title", ""), "era": scenario.get("era", "ww2"), "turn": int(state.turn), "max_turns": int(scenario.get("max_turns", 20)), "side": side, "phase": state.phase, "map": {"width": scenario.get("width", 0), "height": scenario.get("height", 0), "tiles": scenario.get("tiles", []).duplicate(true)}, "units": [], "sides": scenario.get("sides", []).duplicate(true), "objectives": state.objectives.duplicate(true), "depots": [], "weather": state.weather, "scores": state.scores.duplicate(), "ready": state.ready.duplicate(), "logs": [], "contacts": [], "orders": {}, "hex_km": scenario.get("hex_km", 5), "turn_hours": scenario.get("turn_hours", 6), "support": state.get("support", {}).get(str(side), {}).duplicate(true), "result": state.get("result", {}).duplicate(true), "date": scenario.get("date", ""), "description": scenario.get("description", ""), "design_notes": scenario.get("design_notes", ""), "sources": scenario.get("sources", []).duplicate(true), "weather_cycle": scenario.get("weather_cycle", false), "upcoming_reinforcements": [], "control": state.get("control", {}).duplicate()}
+	var result = {"scenario_id": scenario.get("id", ""), "title": scenario.get("title", ""), "era": scenario.get("era", "ww2"), "turn": int(state.turn), "max_turns": int(scenario.get("max_turns", 20)), "side": side, "phase": state.phase, "map": {"width": scenario.get("width", 0), "height": scenario.get("height", 0), "tiles": scenario.get("tiles", [])}, "units": [], "sides": scenario.get("sides", []).duplicate(true), "objectives": state.objectives.duplicate(true), "depots": [], "weather": state.weather, "scores": state.scores.duplicate(), "ready": state.ready.duplicate(), "logs": [], "contacts": [], "orders": {}, "hex_km": scenario.get("hex_km", 5), "turn_hours": scenario.get("turn_hours", 6), "support": state.get("support", {}).get(str(side), {}).duplicate(true), "result": state.get("result", {}).duplicate(true), "date": scenario.get("date", ""), "description": scenario.get("description", ""), "design_notes": scenario.get("design_notes", ""), "sources": scenario.get("sources", []).duplicate(true), "weather_cycle": scenario.get("weather_cycle", false), "upcoming_reinforcements": [], "control": state.get("control", {}).duplicate()}
 	var visible = _visible(state, side)
 	for unit in state.units:
 		if float(unit.strength) <= 0:
@@ -151,6 +151,7 @@ static func resolve(original: Dictionary) -> Dictionary:
 		return state
 	state.events = []
 	state.logs = []
+	state["combat_summary"] = {}
 	var rng = RandomNumberGenerator.new()
 	rng.seed = int(state.seed) + int(state.turn) * 104729
 	_reinforce(state)
@@ -174,6 +175,11 @@ static func resolve(original: Dictionary) -> Dictionary:
 	_update_contacts(state)
 	for event in state.events:
 		state.logs.append(event.text)
+	if state.has("combat_summary") and not state.combat_summary.is_empty():
+		for id in state.combat_summary:
+			var row = state.combat_summary[id]
+			if int(row.get("fights", 0)) > 0:
+				state.logs.append("交战汇总：%s 交火 %s 次，累计损失 %.1f" % [row.get("name", id), row.get("fights"), float(row.get("loss", 0.0))])
 	return state
 
 static func _substep(state: Dictionary, rng: RandomNumberGenerator, step: int) -> void:
@@ -257,6 +263,10 @@ static func _substep(state: Dictionary, rng: RandomNumberGenerator, step: int) -
 		unit.entrenchment = maxf(0, float(unit.entrenchment) - 0.08)
 		unit.fought = true
 		unit.status = "engaged"
+		var summary = state.combat_summary.get(unit.id, {"name": unit.name, "loss": 0.0, "fights": 0, "side": unit.side})
+		summary.loss = float(summary.loss) + float(losses[unit.id])
+		summary.fights = int(summary.fights) + 1
+		state.combat_summary[unit.id] = summary
 		if step == 0 or float(unit.strength) <= 0:
 			_event(state, unit.side, "%s：交战损失 %.1f，组织 %.0f" % [unit.name, losses[unit.id], unit.organization])
 	# Retreats resolve in a stable ID order, with reservations preventing collisions.
@@ -1008,6 +1018,30 @@ static func ai_orders(state: Dictionary, side: int) -> Array:
 						continue
 				submit_support(state, side, kind, cluster)
 				break
+	elif best_n == 0 and not state.ready[side] and _support_available(state, side, "recon"):
+		# Blind AI spends recon on the farthest own-controlled objective to open the map.
+		var scout = []
+		var far = -1
+		for objective in view.objectives:
+			if int(objective.get("owner", -1)) != side:
+				continue
+			var d = 0
+			for unit in view.units:
+				if int(unit.get("side", -1)) == side:
+					d = maxi(d, _distance([int(unit.get("q", 0)), int(unit.get("r", 0))], [int(objective.q), int(objective.r)]))
+			if d > far:
+				far = d
+				scout = [int(objective.q), int(objective.r)]
+		if not scout.is_empty():
+			submit_support(state, side, "recon", scout)
+		else:
+			var own = []
+			for unit in view.units:
+				if int(unit.get("side", -1)) == side:
+					own = [int(unit.get("q", 0)), int(unit.get("r", 0))]
+					break
+			if not own.is_empty():
+				submit_support(state, side, "recon", own)
 	return orders
 
 static func _rules(state: Dictionary) -> Dictionary:

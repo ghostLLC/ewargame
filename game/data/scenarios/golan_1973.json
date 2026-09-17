@@ -11,6 +11,9 @@
   "turn_hours": 6,
   "max_turns": 12,
   "seed": 731007,
+  "difficulty": "hard",
+  "unit_count": 16,
+  "brief_goals": "守住泪谷与库奈特拉，等第 2 回合预备装甲营。",
   "sides": [
     {
       "name": "以色列国防军",

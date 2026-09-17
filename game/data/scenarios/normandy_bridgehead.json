@@ -11,6 +11,9 @@
   "turn_hours": 6,
   "max_turns": 12,
   "seed": 440606,
+  "difficulty": "standard",
+  "unit_count": 16,
+  "brief_goals": "打通堤道出口，夺取圣梅尔埃格利斯与卡朗唐。",
   "sides": [
     {
       "name": "美军",

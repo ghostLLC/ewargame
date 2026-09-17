@@ -20,6 +20,7 @@ var press_position: Vector2 = Vector2.ZERO
 var font: Font
 var hovered: Vector2i = Vector2i(-99, -99)
 var preview_path: Array = []
+var tile_lookup: Dictionary = {}
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -35,6 +36,9 @@ func _ready() -> void:
 func update_view(value: Dictionary, unit_id: String = "") -> void:
 	observation = value
 	selected_id = unit_id
+	tile_lookup = {}
+	for tile in observation.get("map", {}).get("tiles", []):
+		tile_lookup[Vector2i(int(tile.get("q", 0)), int(tile.get("r", 0)))] = tile
 	queue_redraw()
 
 func fit_map() -> void:
@@ -272,6 +276,12 @@ func _draw_counter(unit: Dictionary, rad: float, count: int) -> void:
 		if organization <= 1.0: organization *= 100.0
 		draw_rect(Rect2(rect.position+Vector2(0,height+2),Vector2(width,height*0.06)),Color(0.2,0.3,0.25,0.2))
 		draw_rect(Rect2(rect.position+Vector2(0,height+2),Vector2(width*clampf(organization/100.0,0,1),height*0.06)),Color("8fa378"))
+		var orders = observation.get("orders", {})
+		var has_order = false
+		if orders is Dictionary:
+			has_order = orders.has(str(unit.get("id","")))
+		if not has_order:
+			draw_rect(Rect2(rect.end - Vector2(8, 8), Vector2(8, 8)), Color("c6aa6d"))
 	if count > 1: _label(at+Vector2(width*0.58,-height*0.3),str(count),INK,10)
 
 func _nearest(position: Vector2) -> Vector2i:
@@ -338,18 +348,18 @@ func _gui_input(event: InputEvent) -> void:
 			if hovered.x != -99:
 				hex_hovered.emit(hovered.x, hovered.y)
 				var tip = "坐标 %d, %d" % [hovered.x, hovered.y]
-				for tile in observation.get("map", {}).get("tiles", []):
-					if int(tile.get("q", -1)) == hovered.x and int(tile.get("r", -1)) == hovered.y:
-						var terrain = str(tile.get("terrain", "?"))
-						var extras = []
-						if tile.get("road", false): extras.append("道路")
-						if tile.get("rail", false): extras.append("铁路")
-						if tile.get("river", false): extras.append("河流")
-						if tile.get("bridge", false): extras.append("桥梁")
-						if str(tile.get("label", "")) != "": extras.append(str(tile.get("label")))
-						tip = "%s · %s%s" % [tip, terrain, (" · " + " · ".join(extras)) if extras else ""]
-						tip += "\n左键选择 / 下达目标 · 拖动平移 · 滚轮缩放"
-						break
+				var tile = tile_lookup.get(hovered, {})
+				if tile is Dictionary and not tile.is_empty():
+					var terrain = str(tile.get("terrain", "?"))
+					var terrain_cn = {"plains":"平原","forest":"森林","hills":"丘陵","mountain":"山地","desert":"荒漠","marsh":"湿地","town":"城镇","city":"城市","bocage":"博卡日","water":"水域"}.get(terrain, terrain)
+					var extras = []
+					if tile.get("road", false): extras.append("道路")
+					if tile.get("rail", false): extras.append("铁路")
+					if tile.get("river", false): extras.append("河流")
+					if tile.get("bridge", false): extras.append("桥梁")
+					if str(tile.get("label", "")) != "": extras.append(str(tile.get("label")))
+					tip = "%s · %s%s" % [tip, terrain_cn, (" · " + " · ".join(extras)) if extras else ""]
+					tip += "\n左键选择 / 下达目标 · 拖动平移 · 滚轮缩放"
 				tooltip_text = tip
 			else:
 				hex_hovered.emit(-99, -99)

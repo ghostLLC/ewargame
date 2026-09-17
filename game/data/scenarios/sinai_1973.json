@@ -11,6 +11,9 @@
   "turn_hours": 6,
   "max_turns": 12,
   "seed": 731006,
+  "difficulty": "hard",
+  "unit_count": 20,
+  "brief_goals": "反击运河桥头，第 3 回合装甲增援。",
   "sides": [
     {
       "name": "以色列国防军",
